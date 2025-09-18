@@ -1,0 +1,462 @@
+import { PlayerClass, GameState, Language, Blessing } from './types';
+
+export const INITIAL_GAME_STATE: GameState = {
+  story: '',
+  health: 100,
+  inventory: [],
+  equipment: {
+    head: null,
+    body: null,
+    leftHand: null,
+    rightHand: null,
+    feet: null,
+    waist: null,
+    companion: null,
+  },
+  luck: 50,
+  suggestedActions: [],
+  gameOver: false,
+  win: false,
+  mood: 'neutral',
+  actionResult: 'neutral',
+  turnCount: 0,
+  chapterTitle: '',
+  illustrations: {},
+  strongEnemiesDefeated: 0,
+  blessings: [],
+};
+
+// --- BLESSINGS ---
+const KNIGHT_BLESSINGS_EN: Blessing[] = [
+  { name: "Sacred Resilience", description: "When health is restored, luck is restored by the same amount." },
+  { name: "Vanquisher's Fortune", description: "When an enemy is defeated, a large amount of luck is restored." }
+];
+const ROGUE_BLESSINGS_EN: Blessing[] = [
+  { name: "Gambler's Pact", description: "When health is lost from damage, luck is lost by the same amount." },
+  { name: "Finder's Fortune", description: "When a new item is discovered, a large amount of luck is restored." }
+];
+const SCHOLAR_BLESSINGS_EN: Blessing[] = [
+  { name: "Pioneer's Insight", description: "When a new area is discovered, a large amount of luck is restored." },
+  { name: "Pacifist's Burden", description: "Each time an enemy is defeated, a large amount of luck is lost." }
+];
+const TRICKSTER_BLESSINGS_EN: Blessing[] = [
+  { name: "Twisted Words", description: "Words spoken have a low chance of having the opposite effect." },
+  { name: "Fabricated Fate", description: "Lies told have a high chance of coming true in an unexpected way." },
+  { name: "Fragile Favor", description: "Luck is permanently fixed at 100, but health cannot exceed 1." }
+];
+const KNIGHT_BLESSINGS_ZH_TW: Blessing[] = [
+    { name: "神聖韌性", description: "在恢復生命值的同時，會恢復等量的幸運值。" },
+    { name: "征服者之運", description: "在擊敗敵人的同時，會恢復大量的幸運值。" }
+];
+const ROGUE_BLESSINGS_ZH_TW: Blessing[] = [
+    { name: "賭徒契約", description: "在減損生命值的同時，會減損等量的幸運值。" },
+    { name: "尋寶者之運", description: "在發現道具的同時，會恢復大量的幸運值。" }
+];
+const SCHOLAR_BLESSINGS_ZH_TW: Blessing[] = [
+    { name: "先驅之識", description: "在發現新的場所時，會恢復大量的幸運值。" },
+    { name: "和平主義者之負", description: "每次打倒敵人時，會減損大量的幸運值。" }
+];
+const TRICKSTER_BLESSINGS_ZH_TW: Blessing[] = [
+    { name: "扭曲之言", description: "所述說的話語，有低機率產生相反的效果。" },
+    { name: "虛構之運", description: "所述說的謊言，有高機率以意外的情況成真。" },
+    { name: "脆弱恩典", description: "幸運值永遠為100，但生命值最高只能為1。" }
+];
+
+
+// --- ENGLISH PLAYER CLASSES ---
+const KNIGHT_CLASS_EN: PlayerClass = {
+  id: 'knight',
+  name: 'Knight',
+  description: 'A bastion of honor and martial prowess. Knights begin their journey with sturdy armor and a reliable sword, ready to face any foe head-on.',
+  initialHealth: 100,
+  initialLuck: 60,
+  initialEquipment: {
+    head: { name: 'Old Helm', type: 'equippable', slot: 'head', description: 'A simple, functional helmet that has protected its wearer from more than one fateful blow. It obstructs peripheral vision.' },
+    body: { name: 'Old Knight\'s Armor', type: 'equippable', slot: 'body', description: 'Heavy plate armor, dented and scarred from countless battles. It offers substantial protection at the cost of mobility.' },
+    rightHand: { name: 'Battle-Worn Shortsword', type: 'equippable', slot: 'rightHand', description: 'A reliable blade that has seen its share of conflict. Its edge is chipped, but its spirit is unbroken.' },
+    companion: { name: 'Royal Guardian Hound', type: 'summon_companion', slot: 'companion', description: 'A loyal and battle-trained canine companion. Its senses are sharp, and its bite is fierce.' },
+    leftHand: null, feet: null, waist: null,
+  },
+  initialInventory: [
+    { name: 'King\'s Secret Order', type: 'non-consumable', description: 'A sealed scroll bearing the royal crest. Its contents are for your eyes only, detailing a mission of grave importance.' },
+    { name: 'Healing Salve', type: 'consumable', quantity: 1, description: 'A thick, herbal paste that can be applied to wounds to promote rapid healing.' }
+  ],
+  startingPrompt: 'Clad in iron and sworn to an ancient oath, you stand before the moss-covered maw of the Whispering Crypt. An unsettling chill, colder than the night air, seeps from the stone archway, carrying faint, indecipherable whispers. Your King\'s secret order feels heavy in your pouch, a stark reminder of the encroaching darkness you must vanquish. This is more than a treasure hunt; it is a grim duty. Describe the scene and your first resolute action against the encroaching dread.',
+  initialBlessings: KNIGHT_BLESSINGS_EN,
+};
+
+const ROGUE_CLASS_EN: PlayerClass = {
+  id: 'rogue',
+  name: 'Rogue',
+  description: 'A master of shadows and subtlety. Rogues rely on wit and agility, preferring to strike from the darkness and disappear before the enemy can react.',
+  initialHealth: 30,
+  initialLuck: 90,
+  initialEquipment: {
+    head: { name: 'Rogue\'s Cowl', type: 'equippable', slot: 'head', description: 'A deep hood that conceals the face in shadow, perfect for remaining unseen.' },
+    body: { name: 'Cloth Armor', type: 'equippable', slot: 'body', description: 'A set of dark, layered fabrics that offer minimal protection but allow for silent, fluid movement.' },
+    rightHand: { name: 'Rusted Dagger', type: 'equippable', slot: 'rightHand', description: 'A pitted and corroded blade, but its edge is still sharp enough for a silent takedown.' },
+    feet: { name: 'Soft-soled Shoes', type: 'equippable', slot: 'feet', description: 'Lightweight footwear designed to muffle footsteps on stone floors.' },
+    companion: { name: 'Dark Moon Owl', type: 'summon_companion', slot: 'companion', description: 'A nocturnal bird of prey with unnervingly intelligent eyes. It sees what others miss in the darkness.' },
+    leftHand: null, waist: null,
+  },
+  initialInventory: [
+    { name: 'Smoke Bomb', type: 'consumable', quantity: 1, description: 'A small, clay sphere that releases a thick cloud of disorienting smoke when shattered.' },
+    { name: 'Lockpick', type: 'consumable', description: 'A slender piece of metal, essential for bypassing simple locks. It looks fragile and might only work once.' }
+  ],
+  startingPrompt: 'You are a shadow that moves unseen. Under the cloak of a moonless night, you arrive at the Whispering Crypt, drawn by rumors of a priceless artifact. The heavy stone door is slightly ajar, a silent invitation into suffocating blackness. A cool draft carries the scent of dust and something metallic, like old blood. This is your element. Describe how you slip inside, embracing the palpable danger that awaits.',
+  initialBlessings: ROGUE_BLESSINGS_EN,
+};
+
+const SCHOLAR_CLASS_EN: PlayerClass = {
+  id: 'scholar',
+  name: 'Scholar',
+  description: 'A seeker of forgotten knowledge and arcane secrets. The Scholar uses intellect to overcome obstacles, wielding ancient lore as a potent weapon.',
+  initialHealth: 70,
+  initialLuck: 75,
+  initialEquipment: {
+    head: { name: 'Monocle', type: 'equippable', slot: 'head', description: 'A lens of finely ground crystal that reveals details invisible to the naked eye.' },
+    body: { name: 'Scholar\'s Robe', type: 'equippable', slot: 'body', description: 'Flowing robes embroidered with arcane symbols that offer minor protection against magical energies.' },
+    rightHand: { name: 'Withered Branch Staff', type: 'equippable', slot: 'rightHand', description: 'A twisted piece of ancient wood that hums with latent magical power. It feels strangely warm to the touch.' },
+    companion: { name: 'Elemental Sprite', type: 'summon_companion', slot: 'companion', description: 'A flickering mote of pure energy that darts through the air, drawn to sources of magic.' },
+    leftHand: null, feet: null, waist: null,
+  },
+  initialInventory: [
+    { name: 'Ancient Arcane Codex', type: 'non-consumable', description: 'A heavy tome bound in strange leather, filled with cryptic lore and forbidden rituals.' },
+    { name: 'Mana Potion', type: 'consumable', quantity: 1, description: 'A swirling, luminous blue liquid that restores a measure of one\'s magical reserves.' }
+  ],
+  startingPrompt: 'Driven by a thirst for lost knowledge, your research has led you to the Whispering Crypt, a site rumored to hold secrets of a bygone, powerful era. You stand at the entrance, your old staff in hand. The very air crackles with a latent energy you can feel on your skin, a dangerous symphony of forgotten power. This place is not merely a tomb; it is a library of the forbidden. Describe the first forgotten secret you seek to unveil amidst the ominous silence.',
+  initialBlessings: SCHOLAR_BLESSINGS_EN,
+};
+
+const TRICKSTER_CLASS_EN: PlayerClass = {
+  id: 'trickster',
+  name: 'Trickster',
+  description: 'An agent of chaos who bends reality to their will. The Trickster thrives on unpredictability, turning dire situations into comical advantages with uncanny luck.',
+  initialHealth: 1,
+  initialLuck: 100,
+  initialEquipment: {
+    head: { name: 'Hat of Taunting', type: 'equippable', slot: 'head', description: 'A ridiculously ostentatious hat that subtly draws the ire of onlookers, giving you the upper hand in social mishaps.' },
+    waist: { name: 'Pouch of Unknown Contents', type: 'equippable', slot: 'waist', description: 'A small bag that seems to contain something different every time you reach into it. Or maybe it\'s just lint.' },
+    companion: { name: 'Bluffing Phantom', type: 'summon_companion', slot: 'companion', description: 'An ethereal, translucent entity that mimics your grandiose gestures but offers no real assistance. It\'s great for intimidation.' },
+    body: null, leftHand: null, rightHand: null, feet: null,
+  },
+  initialInventory: [
+    { name: 'Shiny But Worthless Coin', type: 'consumable', description: 'A large, gleaming coin that looks valuable but is made of cheap, painted lead. Perfect for a quick, one-time distraction.' },
+    { name: 'A Yellow Warning Card', type: 'consumable', description: 'A stiff card you can brandish to formally issue a single warning to inanimate objects or disagreeable monsters. Its effects are... questionable and likely won\'t work twice.' },
+    { name: 'Blank Scroll', type: 'consumable', description: 'A pristine roll of parchment. Is it for writing a profound truth, or for drawing a silly face on? You only have one, so choose wisely.' }
+  ],
+  startingPrompt: 'You are a Trickster, and you\'re bored. You wandered into the Whispering Crypt on a whim, thinking it might be a laugh. The spooky whispers and ominous shadows are, frankly, hilarious. But as you step inside, the great stone door slams shut behind you with a deafening boom, plunging you into absolute darkness. The whispers suddenly sound less like a joke and more like a threat. For the first time, this feels... interesting. Describe the first prank you pull on the dungeon\'s unseen denizens to test the true nature of this place.',
+  initialBlessings: TRICKSTER_BLESSINGS_EN,
+};
+
+
+// --- TRADITIONAL CHINESE PLAYER CLASSES ---
+const KNIGHT_CLASS_ZH_TW: PlayerClass = {
+  ...KNIGHT_CLASS_EN,
+  name: '騎士',
+  description: '身披鋼鐵，曾立下古老誓言，你站在長滿青苔的低語地穴入口前。一股比夜色更冷的寒氣從石拱門中滲出，帶來微弱而難以辨識的呢喃。國王的密令在你袋中沉甸甸的，提醒著你必須剷除那侵蝕土地的黑暗。這不僅是尋寶，而是一項嚴峻的職責。描述眼前的景象，以及你對抗那逼近的恐懼所採取的第一个堅決行動。',
+  initialEquipment: {
+    head: { name: '老舊的頭盔', type: 'equippable', slot: 'head', description: '一頂簡單但實用的頭盔，曾不只一次保護佩戴者免受致命打擊。它會阻礙周邊視野。' },
+    body: { name: '老舊的騎士鎧甲', type: 'equippable', slot: 'body', description: '厚重的板甲，上面佈滿了無數戰鬥留下的凹痕和疤痕。它以犧牲機動性為代價，提供堅實的保護。' },
+    rightHand: { name: '戰損短劍', type: 'equippable', slot: 'rightHand', description: '一把見證了無數衝突的可靠刀刃。雖然劍鋒有缺口，但其鬥志未曾磨損。' },
+    companion: { name: '王國守護犬', type: 'summon_companion', slot: 'companion', description: '一隻忠誠且受過戰鬥訓練的犬類夥伴。牠的感官敏銳，咬合力驚人。' },
+    leftHand: null, feet: null, waist: null,
+  },
+  initialInventory: [
+    { name: '國王的密令', type: 'non-consumable', description: '一封蓋有皇家蠟印的捲軸。其內容僅限你親閱，詳述了一項極其重要的任務。' },
+    { name: '治療藥草', type: 'consumable', quantity: 1, description: '一種厚實的草藥膏，塗抹在傷口上可以促進快速癒合。' }
+  ],
+  startingPrompt: '身披鋼鐵，曾立下古老誓言，你站在長滿青苔的低語地穴入口前。一股比夜色更冷的寒氣從石拱門中滲出，帶來微弱而難以辨識的呢喃。國王的密令在你袋中沉甸甸的，提醒著你必須剷除那侵蝕土地的黑暗。這不僅是尋寶，而是一項嚴峻的職責。描述眼前的景象，以及你對抗那逼近的恐懼所採取的第一个堅決行動。',
+  initialBlessings: KNIGHT_BLESSINGS_ZH_TW,
+};
+const ROGUE_CLASS_ZH_TW: PlayerClass = {
+  ...ROGUE_CLASS_EN,
+  name: '盜賊',
+  description: '你是潛影無蹤的暗影行者。在無月之夜的掩護下，你循著一件稀世珍寶的傳聞來到低語地穴。厚重的石門微敞，像是一道通往窒息黑暗的無聲邀請。一陣冷風帶來塵埃與金屬的氣味，宛如陳舊的血跡。這裡是你的領域。描述你如何溜進去，擁抱那等待著你的、清晰可感的危險。',
+  initialEquipment: {
+    head: { name: '盜賊頭巾', type: 'equippable', slot: 'head', description: '一頂能將臉部隱藏在陰影中的深色頭巾，非常適合保持隱蔽。' },
+    body: { name: '布甲', type: 'equippable', slot: 'body', description: '一套深色的多層織物，保護性極低，但能讓穿著者無聲、流暢地移動。' },
+    rightHand: { name: '生鏽匕首', type: 'equippable', slot: 'rightHand', description: '一把佈滿坑洞和腐蝕的刀刃，但其鋒利程度仍足以進行一次無聲的偷襲。' },
+    feet: { name: '軟底鞋', type: 'equippable', slot: 'feet', description: '專為在石地上消音而設計的輕便鞋履。' },
+    companion: { name: '暗月夜梟', type: 'summon_companion', slot: 'companion', description: '一隻擁有智慧到令人不安的雙眼的夜行性猛禽。牠能看見他人在黑暗中所忽略的事物。' },
+    leftHand: null, waist: null,
+  },
+  initialInventory: [
+    { name: '煙霧彈', type: 'consumable', quantity: 1, description: '一個小巧的陶土球，擊碎時會釋放出一團濃厚的、令人迷失方向的煙霧。' },
+    { name: '開鎖器', type: 'consumable', description: '一根細長的金屬絲，是繞過簡易鎖具的必備品。它看起來很脆弱，可能只能使用一次。' }
+  ],
+  startingPrompt: '你是潛影無蹤的暗影行者。在無月之夜的掩護下，你循著一件稀世珍寶的傳聞來到低語地穴。厚重的石門微敞，像是一道通往窒息黑暗的無聲邀請。一陣冷風帶來塵埃與金屬的氣味，宛如陳舊的血跡。這裡是你的領域。描述你如何溜進去，擁抱那等待著你的、清晰可感的危險。',
+  initialBlessings: ROGUE_BLESSINGS_ZH_TW,
+};
+const SCHOLAR_CLASS_ZH_TW: PlayerClass = {
+  ...SCHOLAR_CLASS_EN,
+  name: '學者',
+  description: '在對失落知識的渴求驅使下，你的研究將你引至低語地穴，一個據說藏有遠古強大時代秘密的地點。你手持舊杖，站在入口處。空氣中充滿著潛在的能量，在你的皮膚上噼啪作響，宛如一曲由被遺忘的力量譜寫的危險交響樂。這裡不僅是墳墓，更是一座禁忌的圖書館。描述你在不祥的寂靜中，試圖揭開的第一個被遺忘的秘密。',
+  initialEquipment: {
+    head: { name: '單片眼鏡', type: 'equippable', slot: 'head', description: '一片由精細研磨水晶製成的鏡片，能揭示肉眼看不見的細節。' },
+    body: { name: '學者長袍', type: 'equippable', slot: 'body', description: '飄逸的長袍，上面繡有能提供微弱魔法能量保護的奧術符文。' },
+    rightHand: { name: '枯枝短杖', type: 'equippable', slot: 'rightHand', description: '一根扭曲的古老木杖，散發著潛在的魔法力量。觸感異常溫暖。' },
+    companion: { name: '元素精靈', type: 'summon_companion', slot: 'companion', description: '一團閃爍的純粹能量微粒，在空中飛舞，會被魔法源所吸引。' },
+    leftHand: null, feet: null, waist: null,
+  },
+  initialInventory: [
+    { name: '古老的神秘法典', type: 'non-consumable', description: '一本用奇特皮革裝訂的厚重典籍，裡面充滿了神秘的知識和禁忌的儀式。' },
+    { name: '法力藥水', type: 'consumable', quantity: 1, description: '一種旋轉發光的藍色液體，能恢復一部分的法力儲備。' }
+  ],
+  startingPrompt: '在對失落知識的渴求驅使下，你的研究將你引至低語地穴，一個據說藏有遠古強大時代秘密的地點。你手持舊杖，站在入口處。空氣中充滿著潛在的能量，在你的皮膚上噼啪作響，宛如一曲由被遺忘的力量譜寫的危險交響樂。這裡不僅是墳墓，更是一座禁忌的圖書館。描述你在不祥的寂靜中，試圖揭開的第一個被遺忘的秘密。',
+  initialBlessings: SCHOLAR_BLESSINGS_ZH_TW,
+};
+const TRICKSTER_CLASS_ZH_TW: PlayerClass = {
+  ...TRICKSTER_CLASS_EN,
+  name: '詐欺師',
+  description: '身為詐欺師，你因為無聊而來。你一時興起晃進了低語地穴，覺得這或許會是個笑話。那些詭異的呢喃和不祥的暗影，說實話，相當滑稽。但當你踏入其中，巨大的石門在你身後轟然關上，讓你陷入絕對的黑暗。呢喃聲突然聽起來不那麼像玩笑了，更像是一種威脅。這一次，事情變得……有趣了起來。描述你為了測試此地真實本質，對地穴中看不見的居民所開的第一個惡作劇。',
+  initialEquipment: {
+    head: { name: '嘲諷之帽', type: 'equippable', slot: 'head', description: '一頂極其浮誇的帽子，能巧妙地引來旁觀者的怒火，讓你在社交災難中佔據上風。' },
+    waist: { name: '內容物未知的腰包', type: 'equippable', slot: 'waist', description: '一個小袋子，每次你伸手進去似乎都會摸到不同的東西。或許只是些棉絮。' },
+    companion: { name: '虛張聲勢的幻影', type: 'summon_companion', slot: 'companion', description: '一個飄渺的半透明實體，會模仿你浮誇的手勢，但不會提供任何實際幫助。非常適合用來嚇唬人。' },
+    body: null, leftHand: null, rightHand: null, feet: null,
+  },
+  initialInventory: [
+    { name: '閃亮但毫無價值的硬幣', type: 'consumable', description: '一枚巨大而閃亮的硬幣，看起來很值錢，但其實是用廉價的塗漆鉛製成的。非常適合用來快速轉移一次性的注意力。' },
+    { name: '一張違規警告的黃牌', type: 'consumable', description: '一張你可以揮舞的硬卡片，用來對無生命的物體或難纏的怪物發出一次正式警告。其效果……相當可疑，而且可能不會再起作用。' },
+    { name: '空白的卷軸', type: 'consumable', description: '一卷潔白無瑕的羊皮紙。是用來書寫深刻的真理，還是畫個滑稽的鬼臉？你只有一張，所以謹慎選擇。' }
+  ],
+  startingPrompt: '身為詐欺師，你因為無聊而來。你一時興起晃進了低語地穴，覺得這或許會是個笑話。那些詭異的呢喃和不祥的暗影，說實話，相當滑稽。但當你踏入其中，巨大的石門在你身後轟然關上，讓你陷入絕對的黑暗。呢喃聲突然聽起來不那麼像玩笑了，更像是一種威脅。這一次，事情變得……有趣了起來。描述你為了測試此地真實本質，對地穴中看不見的居民所開的第一個惡作劇。',
+  initialBlessings: TRICKSTER_BLESSINGS_ZH_TW,
+};
+
+
+export const ALL_PLAYER_CLASSES: Record<Language, PlayerClass[]> = {
+  'en': [KNIGHT_CLASS_EN, ROGUE_CLASS_EN, SCHOLAR_CLASS_EN],
+  'zh-TW': [KNIGHT_CLASS_ZH_TW, ROGUE_CLASS_ZH_TW, SCHOLAR_CLASS_ZH_TW],
+  'ja': [KNIGHT_CLASS_EN, ROGUE_CLASS_EN, SCHOLAR_CLASS_EN], // Placeholder, should be translated
+  'es': [KNIGHT_CLASS_EN, ROGUE_CLASS_EN, SCHOLAR_CLASS_EN], // Placeholder, should be translated
+  'ko': [KNIGHT_CLASS_EN, ROGUE_CLASS_EN, SCHOLAR_CLASS_EN], // Placeholder, should be translated
+};
+
+export const TRICKSTER_CLASS: Record<Language, PlayerClass> = {
+  'en': TRICKSTER_CLASS_EN,
+  'zh-TW': TRICKSTER_CLASS_ZH_TW,
+  'ja': TRICKSTER_CLASS_EN, // Placeholder
+  'es': TRICKSTER_CLASS_EN, // Placeholder
+  'ko': TRICKSTER_CLASS_EN, // Placeholder
+};
+
+const translations: Record<Language, Partial<Record<string, string>>> = {
+  'en': {
+    'adventureTitle': 'Whispering Crypt',
+    'adventureSubtitle': 'A Generative AI Adventure',
+    'introText': 'You stand before a forgotten crypt, its entrance shrouded in mist. Legends say it holds immense treasure, but also unspeakable horrors. Your choices will shape your destiny. What will you do?',
+    'loadError': 'Failed to load save file. It may be corrupted or in an invalid format.',
+    'enableNarration': 'Enable Voice Narration',
+    'voiceSpeed': 'Voice Speed',
+    'startAdventure': 'Start Your Adventure',
+    'loadGame': 'Load Saved Game',
+    'illustrationPromptStyle': 'Dark fantasy, oil painting, cinematic lighting, highly detailed.',
+    'illustrationError': 'The ethereal mists refuse to form an image at this time.',
+    'generatingIllustration': 'Generating Illustration...',
+    'buildingWorld': 'The spirits are whispering your story...',
+    'waitingForFate': 'Awaiting fate\'s decree...',
+    'whatToDo': 'What do you do next?',
+    'submit': 'Submit',
+    'generateIllustration': 'Illustrate Scene',
+    'saveGame': 'Save Game',
+    'victoryTitle': 'Victory',
+    'defeatTitle': 'You Have Perished',
+    'victoryText': 'You have conquered the Whispering Crypt and its secrets are now yours. Your legend will be told for ages to come.',
+    'defeatText': 'Your journey ends here. Your bones will turn to dust amongst the other forgotten souls within the Whispering Crypt.',
+    'playAgain': 'Play Again',
+    'health': 'Health',
+    'luck': 'Luck',
+    'slot_head': 'Head',
+    'slot_body': 'Body',
+    'slot_leftHand': 'Left Hand',
+    'slot_rightHand': 'Right Hand',
+    'slot_feet': 'Feet',
+    'slot_waist': 'Waist',
+    'slot_companion': 'Companion',
+    'inventory': 'Inventory',
+    'blessings': 'Blessings',
+    'yourPocketsAreEmpty': 'Your pockets are empty.',
+    'itemDescription': 'Item Description',
+    'blessingDescription': 'Blessing Description',
+    'chooseOrigin': 'Choose Your Origin',
+    'originDescription': 'Your past has shaped you. Choose the path that led you to the entrance of the Whispering Crypt.',
+    'startingEquipment': 'Starting Equipment',
+    'embarkJourney': 'Embark on Your Journey',
+    'aiEngine': 'AI Engine',
+  },
+  'zh-TW': {
+    'adventureTitle': '低語地穴',
+    'adventureSubtitle': '一場生成式AI冒險',
+    'introText': '你站在一座被遺忘的地穴前，入口被薄霧籠罩。傳說這裡藏有巨大的財富，但也潛伏著難以言喻的恐怖。你的選擇將塑造你的命運。你將如何抉擇？',
+    'loadError': '讀取存檔失敗。檔案可能已損壞或格式無效。',
+    'enableNarration': '啟用語音旁白',
+    'voiceSpeed': '語音速度',
+    'startAdventure': '開始你的冒險',
+    'loadGame': '讀取遊戲存檔',
+
+    'illustrationError': '空靈的迷霧此刻拒絕形成圖像。',
+    'generatingIllustration': '正在召喚幻象...',
+    'buildingWorld': '靈魂們正在低語你的故事...',
+    'waitingForFate': '等待命運的判決...',
+    'whatToDo': '你接下來要做什麼？',
+    'submit': '提交',
+    'generateIllustration': '描繪場景',
+    'saveGame': '儲存遊戲',
+    'victoryTitle': '勝利',
+    'defeatTitle': '你已殞命',
+    'victoryText': '你已征服低語地穴，其中的秘密現已歸你所有。你的傳奇將被後世傳頌。',
+    'defeatText': '你的旅程在此終結。你的骸骨將在地穴中與其他被遺忘的靈魂一同化為塵土。',
+    'playAgain': '再玩一次',
+    'health': '生命值',
+    'luck': '幸運值',
+    'slot_head': '頭部',
+    'slot_body': '身體',
+    'slot_leftHand': '左手',
+    'slot_rightHand': '右手',
+    'slot_feet': '腳部',
+    'slot_waist': '腰部',
+    'slot_companion': '夥伴',
+    'inventory': '物品欄',
+    'blessings': '祝福',
+    'yourPocketsAreEmpty': '你的口袋空空如也。',
+    'itemDescription': '物品描述',
+    'blessingDescription': '祝福描述',
+    'chooseOrigin': '選擇你的出身',
+    'originDescription': '你的過去塑造了你。選擇那條引領你來到低語地穴門前的道路。',
+    'startingEquipment': '初始裝備',
+    'embarkJourney': '踏上旅程',
+    'aiEngine': 'AI 引擎',
+  },
+  'ja': {
+    'adventureTitle': '囁きの地下聖堂',
+    'adventureSubtitle': '生成AIアドベンチャー',
+    'introText': 'あなたは忘れられた地下聖堂の前に立っています。その入り口は霧に包まれています。伝説によれば、ここには莫大な宝が眠っていますが、言葉にできない恐怖も潜んでいると言われています。あなたの選択が運命を形作ります。どうしますか？',
+    'loadError': 'セーブファイルの読み込みに失敗しました。ファイルが破損しているか、形式が無効です。',
+    'enableNarration': '音声ナレーションを有効にする',
+    'voiceSpeed': '音声速度',
+    'startAdventure': '冒険を始める',
+    'loadGame': 'セーブデータを読み込む',
+    'illustrationError': '霊妙な霧は今、像を結ぶことを拒んでいます。',
+    'generatingIllustration': 'イラストを生成中...',
+    'buildingWorld': '霊たちがあなたの物語を囁いています...',
+    'waitingForFate': '運命の裁定を待っています...',
+    'whatToDo': '次に何をしますか？',
+    'submit': '決定',
+    'generateIllustration': '場面を描写',
+    'saveGame': 'ゲームを保存',
+    'victoryTitle': '勝利',
+    'defeatTitle': 'あなたは滅びました',
+    'victoryText': 'あなたは囁きの地下聖堂を征服し、その秘密は今やあなたのものです。あなたの伝説は末永く語り継がれるでしょう。',
+    'defeatText': 'あなたの旅はここで終わります。あなたの骨は、地下聖堂の他の忘れられた魂と共に塵と化すでしょう。',
+    'playAgain': 'もう一度プレイ',
+    'health': '体力',
+    'luck': '運',
+    'slot_head': '頭',
+    'slot_body': '胴体',
+    'slot_leftHand': '左手',
+    'slot_rightHand': '右手',
+    'slot_feet': '足',
+    'slot_waist': '腰',
+    'slot_companion': '仲間',
+    'inventory': '持ち物',
+    'blessings': '祝福',
+    'yourPocketsAreEmpty': 'ポケットは空です。',
+    'itemDescription': 'アイテム説明',
+    'blessingDescription': '祝福の説明',
+    'chooseOrigin': 'あなたの出自を選ぶ',
+    'originDescription': 'あなたの過去があなたを形作りました。囁きの地下聖堂の入り口へと導いた道を選んでください。',
+    'startingEquipment': '初期装備',
+    'embarkJourney': '旅に出る',
+    'aiEngine': 'AIエンジン',
+  },
+  'es': {
+    'adventureTitle': 'Cripta Susurrante',
+    'adventureSubtitle': 'Una Aventura de IA Generativa',
+    'introText': 'Te encuentras ante una cripta olvidada, con la entrada envuelta en niebla. Las leyendas dicen que alberga un inmenso tesoro, pero también horrores indecibles. Tus elecciones forjarán tu destino. ¿Qué harás?',
+    'loadError': 'No se pudo cargar el archivo de guardado. Puede estar corrupto o tener un formato no válido.',
+    'enableNarration': 'Habilitar Narración por Voz',
+    'voiceSpeed': 'Velocidad de Voz',
+    'startAdventure': 'Comienza tu Aventura',
+    'loadGame': 'Cargar Partida Guardada',
+    'illustrationError': 'Las nieblas etéreas se niegan a formar una imagen en este momento.',
+    'generatingIllustration': 'Generando ilustración...',
+    'buildingWorld': 'Los espíritus están susurrando tu historia...',
+    'waitingForFate': 'Esperando el decreto del destino...',
+    'whatToDo': '¿Qué haces ahora?',
+    'submit': 'Enviar',
+    'generateIllustration': 'Ilustrar Escena',
+    'saveGame': 'Guardar Partida',
+    'victoryTitle': 'Victoria',
+    'defeatTitle': 'Has Perecido',
+    'victoryText': 'Has conquistado la Cripta Susurrante y sus secretos ahora son tuyos. Tu leyenda será contada por los siglos de los siglos.',
+    'defeatText': 'Tu viaje termina aquí. Tus huesos se convertirán en polvo entre las otras almas olvidadas dentro de la Cripta Susurrante.',
+    'playAgain': 'Jugar de Nuevo',
+    'health': 'Salud',
+    'luck': 'Suerte',
+    'slot_head': 'Cabeza',
+    'slot_body': 'Cuerpo',
+    'slot_leftHand': 'Mano Izquierda',
+    'slot_rightHand': 'Mano Derecha',
+    'slot_feet': 'Pies',
+    'slot_waist': 'Cintura',
+    'slot_companion': 'Compañero',
+    'inventory': 'Inventario',
+    'blessings': 'Bendiciones',
+    'yourPocketsAreEmpty': 'Tus bolsillos están vacíos.',
+    'itemDescription': 'Descripción del Objeto',
+    'blessingDescription': 'Descripción de la Bendición',
+    'chooseOrigin': 'Elige Tu Origen',
+    'originDescription': 'Tu pasado te ha moldeado. Elige el camino que te llevó a la entrada de la Cripta Susurrante.',
+    'startingEquipment': 'Equipo Inicial',
+    'embarkJourney': 'Emprende tu Viaje',
+    'aiEngine': 'Motor de IA',
+  },
+  'ko': {
+    'adventureTitle': '속삭이는 지하실',
+    'adventureSubtitle': '생성형 AI 어드벤처',
+    'introText': '안개에 휩싸인 잊혀진 지하실 입구 앞에 서 있습니다. 전설에 따르면 이곳에는 막대한 보물이 있지만, 말로 다할 수 없는 공포도 도사리고 있다고 합니다. 당신의 선택이 당신의 운명을 결정할 것입니다. 무엇을 하시겠습니까?',
+    'loadError': '저장 파일을 불러오는 데 실패했습니다. 파일이 손상되었거나 잘못된 형식일 수 있습니다.',
+    'enableNarration': '음성 내레이션 활성화',
+    'voiceSpeed': '음성 속도',
+    'startAdventure': '모험 시작하기',
+    'loadGame': '저장된 게임 불러오기',
+    'illustrationError': '영묘한 안개가 지금은 형상을 만들기를 거부합니다.',
+    'generatingIllustration': '일러스트 생성 중...',
+    'buildingWorld': '영혼들이 당신의 이야기를 속삭이고 있습니다...',
+    'waitingForFate': '운명의 판결을 기다리는 중...',
+    'whatToDo': '다음에 무엇을 하시겠습니까?',
+    'submit': '제출',
+    'generateIllustration': '장면 묘사하기',
+    'saveGame': '게임 저장하기',
+    'victoryTitle': '승리',
+    'defeatTitle': '당신은 사망했습니다',
+    'victoryText': '당신은 속삭이는 지하실을 정복했으며 그 비밀은 이제 당신의 것입니다. 당신의 전설은 오랫동안語り継がれるでしょう。',
+    'defeatText': '당신의 여정은 여기서 끝납니다. 당신의 뼈는 속삭이는 지하실의 다른 잊혀진 영혼들 사이에서 먼지가 될 것입니다.',
+    'playAgain': '다시 플레이하기',
+    'health': '체력',
+    'luck': '행운',
+    'slot_head': '머리',
+    'slot_body': '몸통',
+    'slot_leftHand': '왼손',
+    'slot_rightHand': '오른손',
+    'slot_feet': '발',
+    'slot_waist': '허리',
+    'slot_companion': '동료',
+    'inventory': '소지품',
+    'blessings': '축복',
+    'yourPocketsAreEmpty': '주머니가 비어 있습니다.',
+    'itemDescription': '아이템 설명',
+    'blessingDescription': '축복 설명',
+    'chooseOrigin': '당신의 출신을 선택하세요',
+    'originDescription': '당신의 과거가 당신을 만들었습니다. 속삭이는 지하실 입구로 당신을 이끈 길을 선택하세요.',
+    'startingEquipment': '초기 장비',
+    'embarkJourney': '여정 시작하기',
+    'aiEngine': 'AI 엔진',
+  },
+};
+
+export const t = (lang: Language, key: string): string => {
+  return translations[lang]?.[key] || translations['en'][key] || `[${key}]`;
+};

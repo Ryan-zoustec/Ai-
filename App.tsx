@@ -3,16 +3,34 @@ import StartScreen from './components/StartScreen';
 import CharacterCreationScreen from './components/CharacterCreationScreen';
 import GameScreen from './components/GameScreen';
 import GameOverScreen from './components/GameOverScreen';
-import { GameState, PlayerClass, SaveData, Language, Item, AIModel } from './types';
-import { startNewGame, processPlayerAction, generateIllustration as generateIllustrationApi } from './services/aiService';
+import { GameState, PlayerClass, SaveData, Language, Item, AIModel, Gender, EquipmentSlots } from './types';
+import { startNewGame, processPlayerAction, generateIllustration as generateIllustrationApi, getSuggestedItemAction } from './services/aiService';
 import { ALL_PLAYER_CLASSES, TRICKSTER_CLASS, INITIAL_GAME_STATE, t } from './constants';
 
 type Screen = 'start' | 'character' | 'game' | 'gameover';
+
+/**
+ * Cleans the equipment data from the AI, converting placeholder "Empty" items back to null.
+ * This is necessary because the AI is instructed to return a placeholder object instead of null
+ * to conform to a stricter API schema, preventing API errors.
+ */
+const cleanEquipment = (equipment: EquipmentSlots): EquipmentSlots => {
+    const cleaned = { ...equipment };
+    for (const key in cleaned) {
+        const slot = key as keyof EquipmentSlots;
+        const item = cleaned[slot];
+        if (item && item.name === 'Empty') {
+            cleaned[slot] = null;
+        }
+    }
+    return cleaned;
+};
 
 const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>('start');
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
   const [playerClass, setPlayerClass] = useState<PlayerClass | null>(null);
+  const [playerGender, setPlayerGender] = useState<Gender>('male');
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,6 +38,7 @@ const App: React.FC = () => {
   const [isVoiceoverEnabled, setIsVoiceoverEnabled] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
   const [aiModel, setAiModel] = useState<AIModel>('gemini');
+  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
   
   // Use localStorage to track wins for unlocking Trickster
   const hasWonGame = () => localStorage.getItem('hasWonGame') === 'true';
@@ -41,7 +60,6 @@ const App: React.FC = () => {
 
   const speak = useCallback((text: string) => {
     if ('speechSynthesis' in window && isVoiceoverEnabled) {
-      // Wait for voices to be loaded
       const voices = window.speechSynthesis.getVoices();
       if (voices.length === 0) {
           window.speechSynthesis.onvoiceschanged = () => speak(text);
@@ -50,15 +68,26 @@ const App: React.FC = () => {
 
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      const voice = voices.find(v => v.lang.startsWith(language)) || voices.find(v => v.lang.startsWith(language.split('-')[0])) || null;
-      if (voice) {
-        utterance.voice = voice;
+      
+      let voiceToUse: SpeechSynthesisVoice | null = null;
+      // Prefer the user's selected voice
+      if (selectedVoiceURI) {
+        voiceToUse = voices.find(v => v.voiceURI === selectedVoiceURI) || null;
       }
+      // Fallback to finding a voice by language
+      if (!voiceToUse) {
+        voiceToUse = voices.find(v => v.lang.startsWith(language)) || voices.find(v => v.lang.startsWith(language.split('-')[0])) || null;
+      }
+
+      if (voiceToUse) {
+        utterance.voice = voiceToUse;
+      }
+      
       utterance.rate = speechRate;
       utterance.pitch = 1;
       window.speechSynthesis.speak(utterance);
     }
-  }, [isVoiceoverEnabled, language, speechRate]);
+  }, [isVoiceoverEnabled, language, speechRate, selectedVoiceURI]);
 
   useEffect(() => {
     if (gameState.story) {
@@ -110,34 +139,55 @@ const App: React.FC = () => {
     }
   };
 
-  const handleStart = (voiceEnabled: boolean, lang: Language, rate: number, model: AIModel) => {
+  const handleStart = (voiceEnabled: boolean, lang: Language, rate: number, model: AIModel, voiceURI: string) => {
     setLanguage(lang);
     setIsVoiceoverEnabled(voiceEnabled);
     setSpeechRate(rate);
     setAiModel(model);
+    setSelectedVoiceURI(voiceURI);
     setCurrentScreen('character');
     setError(null);
   };
 
-  const handleClassSelect = async (selectedClass: PlayerClass) => {
+  const handleClassSelect = async (selectedClass: PlayerClass, gender: Gender) => {
     // Prime the speech engine on user click to enable autoplay on iOS
     primeSpeechSynthesis(isVoiceoverEnabled);
 
     setIsLoading(true);
     setPlayerClass(selectedClass);
+    setPlayerGender(gender);
     setCurrentScreen('game');
     try {
-      const newGameState = await startNewGame(selectedClass, language, aiModel);
-      setGameState({
-        ...INITIAL_GAME_STATE, // Start fresh, this includes illustrations: {}
-        ...newGameState,
-        suggestedActions: newGameState.suggested_actions,
-        gameOver: newGameState.game_over,
-        actionResult: newGameState.action_result,
-        chapterTitle: newGameState.chapter_title,
-        strongEnemiesDefeated: newGameState.strong_enemies_defeated,
-        turnCount: 1, // Start the count
-      });
+      // AI generates the initial story and suggested actions.
+      const response = await startNewGame(selectedClass, language, aiModel, gender);
+      
+      // Construct the initial game state.
+      // We trust the AI for the story, but use the class definition for stats and equipment
+      // to ensure the starting state is exactly as designed.
+      const newGameState: GameState = {
+        // Use PlayerClass definition for the character's core stats
+        health: selectedClass.initialHealth,
+        luck: selectedClass.initialLuck,
+        inventory: selectedClass.initialInventory,
+        equipment: selectedClass.initialEquipment, // This overrides any incorrect equipment from the AI
+        blessings: selectedClass.initialBlessings,
+        
+        // Use the AI's response for narrative and dynamic elements
+        story: response.story,
+        suggestedActions: response.suggested_actions,
+        gameOver: response.game_over,
+        win: response.win,
+        mood: response.mood,
+        actionResult: response.action_result,
+        chapterTitle: response.chapter_title,
+        strongEnemiesDefeated: response.strong_enemies_defeated,
+
+        // Set initial turn values
+        turnCount: 1,
+        illustrations: {},
+      };
+      setGameState(newGameState);
+
     } catch (e: any) {
       setError(e.message || 'An unknown error occurred.');
     } finally {
@@ -145,32 +195,51 @@ const App: React.FC = () => {
     }
   };
 
-  const processAction = async (action: string, selectedItem: Item | null) => {
+  const processAction = async (action: string, selectedItems: Item[]) => {
     if (!playerClass || isLoading) return;
     setIsLoading(true);
     setError(null);
 
     // Create a temporary state for the API call, so UI doesn't show item used before confirmation
     const tempGameState = { ...gameState };
-    if (selectedItem?.type === 'consumable') {
-        const newInventory = tempGameState.inventory.map(item =>
-            item.name === selectedItem.name ? { ...item, quantity: (item.quantity || 1) - 1 } : item
-        ).filter(item => (item.quantity || 1) > 0);
+    const consumableItems = selectedItems.filter(i => i.type === 'consumable');
+    if (consumableItems.length > 0) {
+        const consumedItemNames = new Set(consumableItems.map(i => i.name));
+        const newInventory = tempGameState.inventory.map(item => {
+            if (consumedItemNames.has(item.name) && item.type === 'consumable') {
+                return { ...item, quantity: (item.quantity || 1) - 1 };
+            }
+            return item;
+        }).filter(item => (item.quantity || 0) > 0);
         tempGameState.inventory = newInventory;
     }
 
     try {
-      const response = await processPlayerAction(tempGameState, playerClass, action, selectedItem, language, aiModel);
+      const response = await processPlayerAction(tempGameState, playerClass, action, selectedItems, language, aiModel, playerGender);
       
-      const actionLog = `\n\n> ${action}${selectedItem ? ` (${selectedItem.name})` : ''}\n\n`;
+      const itemLog = selectedItems.length > 0 ? ` (${selectedItems.map(i => i.name).join(', ')})` : '';
+
+      let blessingLog = '';
+      if (response.triggered_blessings && response.triggered_blessings.length > 0) {
+          const blessingEffects = response.triggered_blessings
+              .map(b => `${b.name}: ${b.effect}`)
+              .join(', ');
+          blessingLog = ` (${blessingEffects})`;
+      }
+
+      const actionLog = `\n\n> ${action}${itemLog}${blessingLog}\n\n`;
       const newStory = `${gameState.story}${actionLog}${response.story}`;
 
       // Continuously increment turn count
       const newTurnCount = gameState.turnCount + 1;
+      
+      // Clean the equipment data from the AI before setting state
+      const cleanedEquipment = cleanEquipment(response.equipment);
 
       const newGameState: GameState = {
         ...response,
         story: newStory,
+        equipment: cleanedEquipment, // Use the cleaned equipment
         suggestedActions: response.suggested_actions,
         gameOver: response.game_over,
         actionResult: response.action_result,
@@ -197,13 +266,37 @@ const App: React.FC = () => {
   };
   
   const handleGenerateIllustration = async () => {
-    if (isGeneratingImage || isLoading) return;
+    if (isGeneratingImage || isLoading || !playerClass) return;
     setIsGeneratingImage(true);
     setError(null);
     
     try {
         const latestStoryChunk = gameState.story.split('>').pop() || gameState.story;
-        const prompt = `${t(language, 'illustrationPromptStyle')} A ${playerClass?.name || 'adventurer'} in a dark crypt. ${latestStoryChunk}`;
+
+        // Build a detailed description of the character for the illustration prompt
+        // by using the item descriptions instead of their names.
+        const equipmentItems = Object.values(gameState.equipment)
+            .filter((item): item is Item => !!item && item.slot !== 'companion');
+        
+        const equipmentDetails = equipmentItems.map(item => item.description).join('. ');
+
+        const companion = gameState.equipment.companion;
+        const companionDetails = companion ? `They are accompanied by a companion: ${companion.description}` : '';
+
+        // Start with a base description including gender.
+        // FIX: Corrected a ReferenceError. The variable `gender` was undefined; it should be `playerGender` from the component's state.
+        let characterDescription = `A ${playerGender} ${playerClass.name}.`;
+        
+        // Add special visual cues for the Trickster to ensure the AI gets their appearance right.
+        if (playerClass.id === 'trickster') {
+             characterDescription = `A frail but cunning-looking ${playerGender} ${playerClass.name} with no visible armor or weapons.`;
+        }
+        
+        // Combine all details into a cohesive prompt.
+        const fullCharacterDetails = `${characterDescription} ${equipmentDetails} ${companionDetails}`.trim().replace(/\s+/g, ' ');
+
+        const prompt = `${t(language, 'illustrationPromptStyle')} ${fullCharacterDetails}. Scene: ${latestStoryChunk}. ${t(language, 'illustrationPromptNegative')}`;
+        
         const imageUrl = await generateIllustrationApi(prompt, language, aiModel);
         
         setGameState(prevState => ({
@@ -220,6 +313,24 @@ const App: React.FC = () => {
     }
   };
 
+  const handleGetItemUsageSuggestion = async (selectedItems: Item[]): Promise<string> => {
+    if (!playerClass || selectedItems.length === 0) return '';
+    try {
+        const suggestion = await getSuggestedItemAction(
+            gameState,
+            playerClass,
+            selectedItems,
+            language,
+            aiModel,
+            playerGender
+        );
+        return suggestion;
+    } catch (e: any) {
+        console.error("Failed to get item usage suggestion:", e);
+        return ''; // Fail silently
+    }
+  };
+
   const handleSave = () => {
     if (!playerClass) return;
     const saveData: SaveData = {
@@ -229,12 +340,23 @@ const App: React.FC = () => {
       isVoiceoverEnabled,
       speechRate,
       aiModel,
+      playerGender,
+      selectedVoiceURI,
     };
-    const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'text/plain' });
+
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}h${String(now.getMinutes()).padStart(2, '0')}m`;
+    
+    // Sanitize parts of the filename to remove characters that are invalid in filenames and replace spaces with underscores.
+    const sanitize = (str: string) => str.replace(/[\\?%*:|"<>]/g, '').replace(/\s+/g, '_');
+
+    const filename = `${sanitize(gameState.chapterTitle)}-${sanitize(playerClass.name)}-${playerGender}-Turn${gameState.turnCount}-${timestamp}.json`;
+
+    const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `whispering-crypt-save-${Date.now()}.txt`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -253,6 +375,8 @@ const App: React.FC = () => {
     setIsVoiceoverEnabled(saveData.isVoiceoverEnabled);
     setSpeechRate(saveData.speechRate);
     setAiModel(saveData.aiModel || 'gemini');
+    setPlayerGender(saveData.playerGender || 'male'); // Handle older saves
+    setSelectedVoiceURI(saveData.selectedVoiceURI || '');
     setClasses(getInitialClasses(saveData.language)); // Make sure to update classes on load
     setCurrentScreen('game');
     setError(null);
@@ -294,9 +418,11 @@ const App: React.FC = () => {
             onSave={handleSave}
             language={language}
             playerClassName={playerClass.name}
+            playerGender={playerGender}
             chapterTitle={gameState.chapterTitle}
             isGeneratingImage={isGeneratingImage}
             onGenerateIllustration={handleGenerateIllustration}
+            onGetSuggestion={handleGetItemUsageSuggestion}
           />
         );
       case 'gameover':

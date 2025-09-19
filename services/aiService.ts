@@ -1,5 +1,5 @@
-import { GameState, PlayerClass, GameUpdateResponse, Language, Item, AIModel } from '../types';
-import { callGeminiApi, generateImage as generateGeminiImage } from './geminiService';
+import { GameState, PlayerClass, GameUpdateResponse, Language, Item, AIModel, Gender } from '../types';
+import { callGeminiApi, generateImage as generateGeminiImage, callGeminiApiForSuggestion } from './geminiService';
 
 // This service acts as a facade. For this project, all AI models will be powered by the Gemini API.
 // This allows for future extension, e.g., adding a real ChatGPT service.
@@ -10,7 +10,8 @@ import { callGeminiApi, generateImage as generateGeminiImage } from './geminiSer
 export const startNewGame = async (
     playerClass: PlayerClass,
     language: Language,
-    aiModel: AIModel
+    aiModel: AIModel,
+    gender: Gender
 ): Promise<GameUpdateResponse> => {
     // For the very first turn, we create a pseudo-game state to provide context to the AI.
     const initialGameState: GameState = {
@@ -35,7 +36,7 @@ export const startNewGame = async (
     const prompt = playerClass.startingPrompt;
 
     // Delegate the API call to the Gemini service.
-    return await callGeminiApi(prompt, initialGameState, playerClass, language);
+    return await callGeminiApi(prompt, initialGameState, playerClass, language, gender);
 };
 
 /**
@@ -45,20 +46,38 @@ export const processPlayerAction = async (
     gameState: GameState,
     playerClass: PlayerClass,
     action: string,
-    selectedItem: Item | null,
+    selectedItems: Item[],
     language: Language,
-    aiModel: AIModel
+    aiModel: AIModel,
+    gender: Gender
 ): Promise<GameUpdateResponse> => {
     
     // Combine the action with the item context if an item was selected.
     let fullAction = action;
-    if (selectedItem) {
-        fullAction = `Use ${selectedItem.name}: ${action}`;
+    if (selectedItems.length > 0) {
+        const itemNames = selectedItems.map(item => item.name).join(', ');
+        fullAction = `Using [${itemNames}]: ${action}`;
     }
 
     // Delegate the API call to the Gemini service.
-    return await callGeminiApi(fullAction, gameState, playerClass, language);
+    return await callGeminiApi(fullAction, gameState, playerClass, language, gender);
 };
+
+/**
+ * Gets a suggested action for using selected items from the AI.
+ */
+export const getSuggestedItemAction = async (
+    gameState: GameState,
+    playerClass: PlayerClass,
+    selectedItems: Item[],
+    language: Language,
+    aiModel: AIModel,
+    gender: Gender
+): Promise<string> => {
+    // For now, all models delegate to Gemini
+    return await callGeminiApiForSuggestion(gameState, playerClass, selectedItems, language, gender);
+};
+
 
 /**
  * Generates an illustration for the current scene.

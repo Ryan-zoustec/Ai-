@@ -1,18 +1,20 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Language, SaveData, AIModel } from '../types';
 import { t } from '../constants';
 
 interface StartScreenProps {
-  onStart: (voiceEnabled: boolean, lang: Language, rate: number, aiModel: AIModel) => void;
+  onStart: (voiceEnabled: boolean, lang: Language, rate: number, aiModel: AIModel, voiceURI: string) => void;
   onLoad: (saveData: SaveData) => void;
 }
 
 const languages: { code: Language; name: string }[] = [
     { code: 'zh-TW', name: '繁體中文' },
-    { code: 'en', name: 'English' },
+    { code: 'zh-CN', name: '简体中文' },
     { code: 'ja', name: '日本語' },
-    { code: 'es', name: 'Español' },
     { code: 'ko', name: '한국어' },
+    { code: 'en', name: 'English' },
+    { code: 'es', name: 'Español' },
 ];
 
 const aiModels: { code: AIModel; name: string }[] = [
@@ -27,6 +29,34 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, onLoad }) => {
   const [rate, setRate] = useState(1);
   const [loadError, setLoadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
+
+  useEffect(() => {
+    if (voiceEnabled && 'speechSynthesis' in window) {
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          const filteredVoices = voices.filter(v => v.lang.startsWith(language));
+          setAvailableVoices(filteredVoices);
+          // If the currently selected voice is not in the new list, reset it.
+          if (selectedVoiceURI && !filteredVoices.some(v => v.voiceURI === selectedVoiceURI)) {
+            setSelectedVoiceURI('');
+          }
+        }
+      };
+
+      loadVoices();
+      // Voices are loaded asynchronously. The 'voiceschanged' event is the reliable way to get the list.
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+      return () => {
+        window.speechSynthesis.onvoiceschanged = null;
+      };
+    } else {
+      setAvailableVoices([]);
+    }
+  }, [voiceEnabled, language, selectedVoiceURI]);
 
   const handleLoadClick = () => {
     fileInputRef.current?.click();
@@ -59,6 +89,32 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, onLoad }) => {
     reader.readAsText(file);
     
     event.target.value = '';
+  };
+
+  const handleTestVoice = () => {
+    if ('speechSynthesis' in window) {
+      const sampleText = t(language, 'testVoiceText');
+      const utterance = new SpeechSynthesisUtterance(sampleText);
+      const voices = window.speechSynthesis.getVoices();
+
+      let voiceToUse: SpeechSynthesisVoice | null = null;
+      if (selectedVoiceURI) {
+        voiceToUse = voices.find(v => v.voiceURI === selectedVoiceURI) || null;
+      }
+      if (!voiceToUse) {
+        voiceToUse = voices.find(v => v.lang.startsWith(language)) || voices.find(v => v.lang.startsWith(language.split('-')[0])) || null;
+      }
+
+      if (voiceToUse) {
+        utterance.voice = voiceToUse;
+      }
+      
+      utterance.rate = rate;
+      utterance.pitch = 1;
+      
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
 
@@ -116,18 +172,46 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, onLoad }) => {
       </div>
 
       {voiceEnabled && (
-        <div className="max-w-xs mx-auto mb-8 transition-all duration-300">
-            <label htmlFor="voice-speed" className="block text-slate-300 mb-2">{t(language, 'voiceSpeed')}: <span className="font-semibold text-cyan-400">{rate.toFixed(1)}x</span></label>
-            <input 
-                type="range" 
-                id="voice-speed"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={rate}
-                onChange={(e) => setRate(parseFloat(e.target.value))}
-                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-            />
+        <div className="max-w-xs mx-auto mb-8 transition-all duration-300 space-y-4">
+            <div>
+              <label htmlFor="voice-speed" className="block text-slate-300 mb-2">{t(language, 'voiceSpeed')}: <span className="font-semibold text-cyan-400">{rate.toFixed(1)}x</span></label>
+              <input 
+                  type="range" 
+                  id="voice-speed"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={rate}
+                  onChange={(e) => setRate(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+              />
+            </div>
+             {availableVoices.length > 0 && (
+              <div>
+                <label htmlFor="voice-select" className="block text-slate-300 mb-1 text-left">{t(language, 'selectVoice')}</label>
+                <select
+                  id="voice-select"
+                  value={selectedVoiceURI}
+                  onChange={(e) => setSelectedVoiceURI(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded-md px-4 py-2 text-slate-200 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition"
+                  aria-label="Select voice"
+                >
+                  <option value="">{t(language, 'browserDefault')}</option>
+                  {availableVoices.map((voice) => (
+                    <option key={voice.voiceURI} value={voice.voiceURI}>
+                      {`${voice.name} (${voice.lang})`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <button
+              onClick={handleTestVoice}
+              className="w-full bg-slate-600 text-slate-200 py-2 px-4 rounded-md hover:bg-slate-500 transition-colors"
+              aria-label="Test selected voice and speed"
+            >
+              {t(language, 'testVoice')}
+            </button>
         </div>
       )}
 
@@ -135,7 +219,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, onLoad }) => {
 
       <div className="flex flex-col items-center gap-4">
         <button
-            onClick={() => onStart(voiceEnabled, language, rate, aiModel)}
+            onClick={() => onStart(voiceEnabled, language, rate, aiModel, selectedVoiceURI)}
             className="bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-cyan-500 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-cyan-500/20 text-xl"
         >
             {t(language, 'startAdventure')}
@@ -144,7 +228,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onStart, onLoad }) => {
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept=".txt"
+            accept=".json,.txt"
             style={{ display: 'none' }}
         />
          <button

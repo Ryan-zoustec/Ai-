@@ -1,7 +1,8 @@
 export type ItemType = 'equippable' | 'consumable' | 'non-consumable' | 'summon_companion';
 export type EquipmentSlot = 'head' | 'body' | 'leftHand' | 'rightHand' | 'feet' | 'waist' | 'companion';
-export type Language = 'zh-TW' | 'en' | 'ja' | 'es' | 'ko';
+export type Language = 'zh-TW' | 'zh-CN' | 'en' | 'ja' | 'es' | 'ko';
 export type AIModel = 'gemini' | 'chatgpt';
+export type Gender = 'male' | 'female';
 
 export interface Item {
   name: string;
@@ -50,6 +51,11 @@ export interface GameState {
   blessings: Blessing[];
 }
 
+export interface TriggeredBlessing {
+  name: string;
+  effect: string;
+}
+
 export interface GameUpdateResponse {
   story: string;
   health: number;
@@ -64,6 +70,7 @@ export interface GameUpdateResponse {
   chapter_title: string;
   strong_enemies_defeated: number;
   blessings: Blessing[];
+  triggered_blessings?: TriggeredBlessing[];
 }
 
 export interface PlayerClass {
@@ -85,4 +92,6 @@ export interface SaveData {
   isVoiceoverEnabled: boolean;
   speechRate: number;
   aiModel: AIModel;
+  playerGender: Gender;
+  selectedVoiceURI?: string;
 }

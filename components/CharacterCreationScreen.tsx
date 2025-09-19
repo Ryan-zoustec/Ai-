@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlayerClass, Language } from '../types';
+import { PlayerClass, Language, Gender } from '../types';
 import { t } from '../constants';
 
 const iconProps = { className: "h-16 w-16 mb-4 text-cyan-400", strokeWidth: "1.5", fill: "none", strokeLinecap: "round", strokeLinejoin: "round"} as const;
@@ -9,37 +9,25 @@ const ScholarIcon = () => <svg {...iconProps} viewBox="0 0 24 24" stroke="curren
 const TricksterIcon = () => <svg {...iconProps} viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path></svg>;
 
 const classIcons: { [key: string]: React.ReactElement } = {
-  'Knight': <KnightIcon />,
-  'Rogue': <RogueIcon />,
-  'Scholar': <ScholarIcon />,
-  'Trickster': <TricksterIcon />,
-  '騎士': <KnightIcon />,
-  '盜賊': <RogueIcon />,
-  '學者': <ScholarIcon />,
-  '詐欺師': <TricksterIcon />,
-  'ナイト': <KnightIcon />,
-  '学者': <ScholarIcon />,
-  '盗賊': <RogueIcon />,
-  'トリックスター': <TricksterIcon />,
-  'Caballero': <KnightIcon />,
-  'Pícaro': <RogueIcon />,
-  'Erudito': <ScholarIcon />,
-  'Embaucador': <TricksterIcon />,
-  '기사': <KnightIcon />,
-  '도적': <RogueIcon />,
-  '학자': <ScholarIcon />,
-  '사기꾼': <TricksterIcon />,
+  'Knight': <KnightIcon />, 'Rogue': <RogueIcon />, 'Scholar': <ScholarIcon />, 'Trickster': <TricksterIcon />,
+  '騎士': <KnightIcon />, '盜賊': <RogueIcon />, '學者': <ScholarIcon />, '詐欺師': <TricksterIcon />,
+  '骑士': <KnightIcon />, '盗贼': <RogueIcon />, '学者': <ScholarIcon />, '欺诈师': <TricksterIcon />,
+  // FIX: Removed duplicate '学者' key, which is the same for both Japanese and Simplified Chinese and was already defined.
+  'ナイト': <KnightIcon />, '盗賊': <RogueIcon />, 'トリックスター': <TricksterIcon />,
+  'Caballero': <KnightIcon />, 'Pícaro': <RogueIcon />, 'Erudito': <ScholarIcon />, 'Embaucador': <TricksterIcon />,
+  '기사': <KnightIcon />, '도적': <RogueIcon />, '학자': <ScholarIcon />, '사기꾼': <TricksterIcon />,
 };
 
 interface CharacterCreationScreenProps {
   classes: PlayerClass[];
-  onSelectClass: (playerClass: PlayerClass) => void;
+  onSelectClass: (playerClass: PlayerClass, gender: Gender) => void;
   language: Language;
   onUnlockTrickster: () => void;
 }
 
 const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ classes, onSelectClass, language, onUnlockTrickster }) => {
   const [selectedClass, setSelectedClass] = useState<PlayerClass | null>(null);
+  const [selectedGender, setSelectedGender] = useState<Gender>('male');
   const [clickCount, setClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
   const UNLOCK_THRESHOLD = 6;
@@ -63,7 +51,7 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ class
 
   const handleConfirm = () => {
     if (selectedClass) {
-      onSelectClass(selectedClass);
+      onSelectClass(selectedClass, selectedGender);
     }
   };
   
@@ -77,10 +65,10 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ class
   return (
     <div className="text-center bg-black/30 backdrop-blur-sm p-8 rounded-lg shadow-2xl shadow-cyan-500/10 border border-slate-700 w-full max-w-6xl mx-auto">
       <h1 className="text-4xl font-bold text-cyan-400 mb-2 tracking-wider">{t(language, 'chooseOrigin')}</h1>
-      <p className="text-slate-400 max-w-3xl mx-auto mb-8">
+      <p className="text-slate-400 max-w-3xl mx-auto mb-6">
         {t(language, 'originDescription')}
       </p>
-      <div className={`grid md:grid-cols-${classes.length === 4 ? '4' : '3'} gap-6 mb-8`}>
+      <div className={`grid md:grid-cols-${classes.length === 4 ? '4' : '3'} gap-6 mb-6`}>
         {classes.map((playerClass) => (
           <div
             key={playerClass.id}
@@ -99,6 +87,25 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ class
           </div>
         ))}
       </div>
+
+      <div className="mb-8">
+        <h3 className="text-xl font-bold text-cyan-400 mb-3">{t(language, 'chooseGender')}</h3>
+        <div className="flex justify-center gap-4">
+            <button
+                onClick={() => setSelectedGender('male')}
+                className={`px-8 py-3 rounded-lg border-2 text-lg font-bold transition-all ${selectedGender === 'male' ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-cyan-700'}`}
+            >
+                {t(language, 'male')} ♂
+            </button>
+            <button
+                onClick={() => setSelectedGender('female')}
+                className={`px-8 py-3 rounded-lg border-2 text-lg font-bold transition-all ${selectedGender === 'female' ? 'bg-pink-600 border-pink-500 text-white' : 'bg-slate-700 border-slate-600 text-slate-300 hover:border-pink-700'}`}
+            >
+                {t(language, 'female')} ♀
+            </button>
+        </div>
+      </div>
+
       <button
         onClick={handleConfirm}
         disabled={!selectedClass}

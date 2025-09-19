@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Item, EquipmentSlots, EquipmentSlot, Language, Blessing } from '../types';
+import { Item, EquipmentSlots, EquipmentSlot, Language, Blessing, Gender } from '../types';
 import { t } from '../constants';
 
 interface PlayerStatsProps {
@@ -10,10 +10,11 @@ interface PlayerStatsProps {
   equipment: EquipmentSlots;
   blessings: Blessing[];
   actionResult: string;
-  selectedItem: Item | null;
-  onSelectItem: (item: Item | null) => void;
+  selectedItems: Item[];
+  onSelectItem: (item: Item) => void;
   language: Language;
   playerClassName: string;
+  playerGender: Gender;
 }
 
 // --- Main Stat Icons ---
@@ -46,19 +47,19 @@ const getIconForItem = (item: Item | null): React.ReactElement => {
     // Companion check first
     if (item.slot === 'companion') {
         if (name.includes('hound') || name.includes('犬')) return <GuardianIcon />;
-        if (name.includes('owl') || name.includes('梟')) return <PerceptionIcon />;
-        if (name.includes('sprite') || name.includes('精靈')) return <EnergyIcon />;
+        if (name.includes('owl') || name.includes('梟') || name.includes('フクロウ')) return <PerceptionIcon />;
+        if (name.includes('sprite') || name.includes('精靈') || name.includes('スプライト')) return <EnergyIcon />;
         if (name.includes('dragon') || name.includes('龍')) return <DragonIcon />;
         return <CompanionHeartIcon />;
     }
 
     if (name.includes('map') || name.includes('地圖')) return <MapIcon />;
-    if (name.includes('potion') || name.includes('藥水') || name.includes('salve') || name.includes('藥膏')) return <PotionIcon />;
-    if (name.includes('key') || name.includes('鑰匙') || name.includes('lockpick') || name.includes('開鎖器')) return <KeyIcon />;
-    if (name.includes('armor') || name.includes('甲') || name.includes('robes') || name.includes('袍')) return <ArmorIcon />;
-    if (name.includes('helmet') || name.includes('頭盔') || name.includes('cap') || name.includes('帽')) return <HelmetIcon />;
+    if (name.includes('potion') || name.includes('藥水') || name.includes('藥膏') || name.includes('ポーション') || name.includes('salve') || name.includes('軟膏')) return <PotionIcon />;
+    if (name.includes('key') || name.includes('鑰匙') || name.includes('lockpick') || name.includes('開鎖器') || name.includes('鍵')) return <KeyIcon />;
+    if (name.includes('armor') || name.includes('甲') || name.includes('袍') || name.includes('鎧') || name.includes('ローブ')) return <ArmorIcon />;
+    if (name.includes('helmet') || name.includes('頭盔') || name.includes('帽') || name.includes('兜')) return <HelmetIcon />;
     if (name.includes('boots') || name.includes('靴')) return <BootsIcon />;
-    if (name.includes('sword') || name.includes('劍') || name.includes('dagger') || name.includes('匕首') || name.includes('staff') || name.includes('杖')) return <DaggerIcon />;
+    if (name.includes('sword') || name.includes('劍') || name.includes('dagger') || name.includes('匕首') || name.includes('staff') || name.includes('杖') || name.includes('短剣')) return <DaggerIcon />;
     
     return <GenericItemIcon />;
 };
@@ -73,7 +74,9 @@ const TricksterIconClass = () => <svg {...iconPropsClass} viewBox="0 0 24 24" st
 const classIcons: { [key: string]: React.ReactElement } = {
   'Knight': <KnightIconClass />, 'Rogue': <RogueIconClass />, 'Scholar': <ScholarIconClass />, 'Trickster': <TricksterIconClass />,
   '騎士': <KnightIconClass />, '盜賊': <RogueIconClass />, '學者': <ScholarIconClass />, '詐欺師': <TricksterIconClass />,
-  'ナイト': <KnightIconClass />, '学者': <ScholarIconClass />, '盗賊': <RogueIconClass />, 'トリックスター': <TricksterIconClass />,
+  '骑士': <KnightIconClass />, '盗贼': <RogueIconClass />, '学者': <ScholarIconClass />, '欺诈师': <TricksterIconClass />,
+  // FIX: Removed duplicate '学者' key, which is the same for both Japanese and Simplified Chinese and was already defined.
+  'ナイト': <KnightIconClass />, '盗賊': <RogueIconClass />, 'トリックスター': <TricksterIconClass />,
   'Caballero': <KnightIconClass />, 'Pícaro': <RogueIconClass />, 'Erudito': <ScholarIconClass />, 'Embaucador': <TricksterIconClass />,
   '기사': <KnightIconClass />, '도적': <RogueIconClass />, '학자': <ScholarIconClass />, '사기꾼': <TricksterIconClass />,
 };
@@ -123,7 +126,7 @@ const EquipmentSlotComponent: React.FC<{
 };
 
 
-const PlayerStats: React.FC<PlayerStatsProps> = ({ health, luck, inventory, equipment, blessings, actionResult, selectedItem, onSelectItem, language, playerClassName }) => {
+const PlayerStats: React.FC<PlayerStatsProps> = ({ health, luck, inventory, equipment, blessings, actionResult, selectedItems, onSelectItem, language, playerClassName, playerGender }) => {
   const maxHealth = 100;
   const healthPercentage = (health / maxHealth) * 100;
   const healthColor = healthPercentage > 60 ? 'bg-green-500' : healthPercentage > 30 ? 'bg-yellow-500' : 'bg-red-500';
@@ -222,7 +225,12 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ health, luck, inventory, equi
         <div className="bg-slate-900/50 p-2 md:p-3 rounded-lg flex flex-col items-center space-y-2 border border-slate-700">
             <div className="flex items-center justify-center mb-2 w-full border-b border-slate-700 pb-2">
                 {classIcons[playerClassName] || <KnightIconClass />}
-                <h3 className="text-xl md:text-2xl font-bold text-slate-200 tracking-wider">{playerClassName}</h3>
+                <h3 className="text-xl md:text-2xl font-bold text-slate-200 tracking-wider">
+                    {playerClassName}
+                    <span className={`ml-2 ${playerGender === 'male' ? 'text-blue-400' : 'text-pink-400'}`}>
+                        {playerGender === 'male' ? '♂' : '♀'}
+                    </span>
+                </h3>
             </div>
             {renderEquipmentSlot('companion')}
             
@@ -266,18 +274,21 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ health, luck, inventory, equi
           </div>
           <div className="flex flex-wrap gap-1 md:gap-2 min-h-[5rem] content-start">
             {inventory.length > 0 ? (
-              inventory.map((item, index) => (
-                <div
-                  key={`${item.name}-${index}`}
-                  onClick={() => onSelectItem(selectedItem === item ? null : item)}
-                  onMouseEnter={(e) => handleMouseEnter(e, item)}
-                  {...commonMouseEventHandlers}
-                  className={`bg-slate-700 text-slate-300 h-fit pl-2 pr-3 py-1.5 rounded-full text-xs capitalize flex items-center transition-colors cursor-pointer hover:bg-slate-600 border border-slate-600 ${selectedItem === item ? 'ring-2 ring-cyan-400' : ''}`}
-                >
-                  <div className="mr-1.5">{getIconForItem(item)}</div>
-                  {item.name} {item.quantity && item.quantity > 1 ? `(x${item.quantity})` : ''}
-                </div>
-              ))
+              inventory.map((item, index) => {
+                const isSelected = selectedItems.some(i => i.name === item.name);
+                return (
+                  <div
+                    key={`${item.name}-${index}`}
+                    onClick={() => onSelectItem(item)}
+                    onMouseEnter={(e) => handleMouseEnter(e, item)}
+                    {...commonMouseEventHandlers}
+                    className={`bg-slate-700 text-slate-300 h-fit pl-2 pr-3 py-1.5 rounded-full text-xs capitalize flex items-center transition-colors cursor-pointer hover:bg-slate-600 border border-slate-600 ${isSelected ? 'ring-2 ring-cyan-400' : ''}`}
+                  >
+                    <div className="mr-1.5">{getIconForItem(item)}</div>
+                    {item.name} {item.quantity && item.quantity > 1 ? `(x${item.quantity})` : ''}
+                  </div>
+                )
+              })
             ) : (
               <span className="text-slate-500 italic text-center w-full self-center">{t(language, 'yourPocketsAreEmpty')}</span>
             )}

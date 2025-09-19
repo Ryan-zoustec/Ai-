@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { GameState, Item, Language } from '../types';
+import { GameState, Item, Language, Gender } from '../types';
 import PlayerStats from './PlayerStats';
 import LoadingIcon from './LoadingIcon';
 import { t } from '../constants';
@@ -8,13 +8,15 @@ interface GameScreenProps {
   gameState: GameState;
   isLoading: boolean;
   error: string | null;
-  onSubmitAction: (action: string, selectedItem: Item | null) => void;
+  onSubmitAction: (action: string, selectedItems: Item[]) => void;
   onSave: () => void;
   language: Language;
   playerClassName: string;
+  playerGender: Gender;
   chapterTitle: string;
   isGeneratingImage: boolean;
   onGenerateIllustration: () => void;
+  onGetSuggestion: (items: Item[]) => Promise<string>;
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -25,12 +27,15 @@ const GameScreen: React.FC<GameScreenProps> = ({
   onSave,
   language,
   playerClassName,
+  playerGender,
   chapterTitle,
   isGeneratingImage,
-  onGenerateIllustration
+  onGenerateIllustration,
+  onGetSuggestion
 }) => {
   const [customAction, setCustomAction] = useState('');
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Item[]>([]);
+  const [isSuggesting, setIsSuggesting] = useState(false);
   const storyContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,12 +44,58 @@ const GameScreen: React.FC<GameScreenProps> = ({
     }
   }, [gameState.story, gameState.illustrations, isGeneratingImage]);
 
+  useEffect(() => {
+    // This effect handles debouncing the suggestion call
+    if (isLoading) {
+        return; // Don't do anything if a main action is processing
+    }
+
+    if (selectedItems.length === 0) {
+        setCustomAction('');
+        return;
+    }
+
+    // Set up the timer.
+    const handler = setTimeout(async () => {
+        setIsSuggesting(true);
+        try {
+            const suggestion = await onGetSuggestion(selectedItems);
+            // Check if items are still selected when suggestion comes back
+            // to avoid race condition where user deselects while waiting.
+            if (selectedItems.length > 0) {
+                setCustomAction(suggestion || '');
+            }
+        } catch (error) {
+            console.error("Error fetching suggestion:", error);
+        } finally {
+            setIsSuggesting(false);
+        }
+    }, 800); // 800ms debounce
+
+    // Cleanup function: this is called if selectedItems changes again before
+    // the timeout completes, or when the component unmounts. This is the core of debouncing.
+    return () => {
+        clearTimeout(handler);
+    };
+  }, [selectedItems, isLoading, onGetSuggestion]);
+
 
   const handleSubmit = (action: string) => {
     if (isLoading || !action.trim()) return;
-    onSubmitAction(action, selectedItem);
+    onSubmitAction(action, selectedItems);
     setCustomAction('');
-    setSelectedItem(null);
+    setSelectedItems([]);
+  };
+  
+  const handleSelectItem = (itemToToggle: Item) => {
+    setSelectedItems(prevSelected => {
+        const isSelected = prevSelected.some(item => item.name === itemToToggle.name);
+        if (isSelected) {
+            return prevSelected.filter(item => item.name !== itemToToggle.name);
+        } else {
+            return [...prevSelected, itemToToggle];
+        }
+    });
   };
 
   const handleCustomActionSubmit = (e: React.FormEvent) => {
@@ -95,6 +146,20 @@ const GameScreen: React.FC<GameScreenProps> = ({
       );
     });
   };
+  
+  const getPlaceholderText = () => {
+    if (isSuggesting) {
+      return t(language, 'thinkingOfUse');
+    }
+    if (selectedItems.length === 0) {
+      return t(language, 'whatToDo');
+    }
+    const itemNames = selectedItems.map(i => i.name).join(', ');
+    if (itemNames.length > 40) {
+      return `Use ${selectedItems.length} selected items...`;
+    }
+    return `Use ${itemNames}...`;
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-4 w-full md:h-[90vh] md:max-h-[900px]">
@@ -112,10 +177,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
             equipment={gameState.equipment}
             blessings={gameState.blessings}
             actionResult={gameState.actionResult}
-            selectedItem={selectedItem}
-            onSelectItem={setSelectedItem}
+            selectedItems={selectedItems}
+            onSelectItem={handleSelectItem}
             language={language}
             playerClassName={playerClassName}
+            playerGender={playerGender}
           />
         </div>
       </div>
@@ -152,12 +218,12 @@ const GameScreen: React.FC<GameScreenProps> = ({
           {!isLoading && (
             <>
               <h3 className="text-base md:text-lg font-bold text-slate-300 mb-3 text-center">{t(language, 'whatToDo')}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 mb-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                 {gameState.suggestedActions.map(({ action, hint }) => (
                   <button
                     key={action}
                     onClick={() => handleSubmit(action)}
-                    className="bg-slate-700 text-slate-200 p-2 md:p-3 rounded-lg text-left transition-colors hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-slate-700 text-slate-200 p-4 rounded-lg text-left transition-colors hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isLoading}
                     title={hint}
                   >
@@ -171,7 +237,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
                   type="text"
                   value={customAction}
                   onChange={(e) => setCustomAction(e.target.value)}
-                  placeholder={selectedItem ? `Use ${selectedItem.name}...` : 'Or type your own action...'}
+                  placeholder={getPlaceholderText()}
                   className="flex-grow bg-slate-800 border border-slate-600 rounded-md px-4 py-2 text-slate-200 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition disabled:opacity-50"
                   disabled={isLoading}
                 />

@@ -26,6 +26,7 @@ export interface EquipmentSlots {
 export interface Blessing {
   name: string;
   description: string;
+  duration?: number;
 }
 
 export interface SuggestedAction {
@@ -49,6 +50,7 @@ export interface GameState {
   illustrations: Record<number, string>; // Map turn count to image URL
   strongEnemiesDefeated: number;
   blessings: Blessing[];
+  alignment: number; // Hidden morality value for Dark Master. Negative=Evil, Positive=Good.
 }
 
 export interface TriggeredBlessing {
@@ -71,6 +73,7 @@ export interface GameUpdateResponse {
   strong_enemies_defeated: number;
   blessings: Blessing[];
   triggered_blessings?: TriggeredBlessing[];
+  alignment: number;
 }
 
 export interface PlayerClass {

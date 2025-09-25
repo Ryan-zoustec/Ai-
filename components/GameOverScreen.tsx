@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Language } from '../types';
 import { t } from '../constants';
@@ -11,9 +10,10 @@ interface GameOverScreenProps {
   story: string;
   illustration: string | undefined;
   isGeneratingIllustration: boolean;
+  onDownloadAdventure: () => void;
 }
 
-const GameOverScreen: React.FC<GameOverScreenProps> = ({ win, onRestart, language, story, illustration, isGeneratingIllustration }) => {
+const GameOverScreen: React.FC<GameOverScreenProps> = ({ win, onRestart, language, story, illustration, isGeneratingIllustration, onDownloadAdventure }) => {
     
   const getFinalStoryText = (fullStory: string): string => {
     if (!fullStory) return '';
@@ -66,12 +66,22 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ win, onRestart, languag
             ? t(language, 'victoryText')
             : t(language, 'defeatText')}
         </p>
-        <button
-            onClick={onRestart}
-            className="bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-cyan-500 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-cyan-500/20 text-xl"
-        >
-            {t(language, 'playAgain')}
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+            <button
+                onClick={onRestart}
+                className="bg-cyan-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-cyan-500 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-cyan-500/20 text-xl"
+            >
+                {t(language, 'playAgain')}
+            </button>
+            {win && (
+                 <button
+                    onClick={onDownloadAdventure}
+                    className="bg-slate-600 text-slate-200 font-bold py-3 px-8 rounded-lg hover:bg-slate-500 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-slate-800/20 text-xl"
+                >
+                    {t(language, 'downloadAdventure')}
+                </button>
+            )}
+        </div>
     </div>
   );
 };

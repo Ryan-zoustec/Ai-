@@ -17,6 +17,7 @@ interface GameScreenProps {
   isGeneratingImage: boolean;
   onGenerateIllustration: () => void;
   onGetSuggestion: (items: Item[]) => Promise<string>;
+  onProceedToGameOver: () => void;
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({
@@ -31,7 +32,8 @@ const GameScreen: React.FC<GameScreenProps> = ({
   chapterTitle,
   isGeneratingImage,
   onGenerateIllustration,
-  onGetSuggestion
+  onGetSuggestion,
+  onProceedToGameOver
 }) => {
   const [customAction, setCustomAction] = useState('');
   const [selectedItems, setSelectedItems] = useState<Item[]>([]);
@@ -217,48 +219,61 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
           {!isLoading && (
             <>
-              <h3 className="text-base md:text-lg font-bold text-slate-300 mb-3 text-center">{t(language, 'whatToDo')}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                {gameState.suggestedActions.map(({ action, hint }) => (
-                  <button
-                    key={action}
-                    onClick={() => handleSubmit(action)}
-                    className="bg-slate-700 text-slate-200 p-4 rounded-lg text-left transition-colors hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={isLoading}
-                    title={hint}
-                  >
-                    <span className="font-semibold text-sm md:text-base">{action}</span>
-                    <span className="block text-xs text-slate-400 mt-1">{hint}</span>
-                  </button>
-                ))}
-              </div>
-              <form onSubmit={handleCustomActionSubmit} className="flex gap-2 md:gap-3">
-                <input
-                  type="text"
-                  value={customAction}
-                  onChange={(e) => setCustomAction(e.target.value)}
-                  placeholder={getPlaceholderText()}
-                  className="flex-grow bg-slate-800 border border-slate-600 rounded-md px-4 py-2 text-slate-200 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition disabled:opacity-50"
-                  disabled={isLoading}
-                />
-                <button
-                  type="submit"
-                  className="bg-cyan-600 text-white font-bold py-2 px-4 md:px-6 rounded-lg hover:bg-cyan-500 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed"
-                  disabled={isLoading || !customAction.trim()}
-                >
-                  {t(language, 'submit')}
-                </button>
-              </form>
+              {!gameState.win ? (
+                <>
+                  <h3 className="text-base md:text-lg font-bold text-slate-300 mb-3 text-center">{t(language, 'whatToDo')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    {gameState.suggestedActions.map(({ action, hint }) => (
+                      <button
+                        key={action}
+                        onClick={() => handleSubmit(action)}
+                        className="bg-slate-700 text-slate-200 p-4 rounded-lg text-left transition-colors hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isLoading}
+                        title={hint}
+                      >
+                        <span className="font-semibold text-sm md:text-base">{action}</span>
+                        <span className="block text-xs text-slate-400 mt-1">{hint}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <form onSubmit={handleCustomActionSubmit} className="flex gap-2 md:gap-3">
+                    <input
+                      type="text"
+                      value={customAction}
+                      onChange={(e) => setCustomAction(e.target.value)}
+                      placeholder={getPlaceholderText()}
+                      className="flex-grow bg-slate-800 border border-slate-600 rounded-md px-4 py-2 text-slate-200 focus:ring-2 focus:ring-cyan-500 focus:outline-none transition disabled:opacity-50"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="submit"
+                      className="bg-cyan-600 text-white font-bold py-2 px-4 md:px-6 rounded-lg hover:bg-cyan-500 transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed"
+                      disabled={isLoading || !customAction.trim()}
+                    >
+                      {t(language, 'submit')}
+                    </button>
+                  </form>
+                  <div className="mt-4 flex justify-center gap-4">
+                    <button onClick={onGenerateIllustration} disabled={isGeneratingImage || isLoading} className="text-slate-400 hover:text-cyan-400 transition-colors text-sm underline disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isGeneratingImage ? t(language, 'generatingIllustration') : t(language, 'generateIllustration')}
+                    </button>
+                      <button onClick={onSave} disabled={isLoading} className="text-slate-400 hover:text-cyan-400 transition-colors text-sm underline disabled:opacity-50">
+                          {t(language, 'saveGame')}
+                      </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-center py-8">
+                    <button
+                        onClick={onProceedToGameOver}
+                        className="bg-amber-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-amber-400 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-amber-500/20 text-xl"
+                    >
+                        {t(language, 'gameClearedButton')}
+                    </button>
+                </div>
+              )}
             </>
           )}
-           <div className="mt-4 flex justify-center gap-4">
-               <button onClick={onGenerateIllustration} disabled={isGeneratingImage || isLoading} className="text-slate-400 hover:text-cyan-400 transition-colors text-sm underline disabled:opacity-50 disabled:cursor-not-allowed">
-                   {isGeneratingImage ? t(language, 'generatingIllustration') : t(language, 'generateIllustration')}
-               </button>
-                <button onClick={onSave} disabled={isLoading} className="text-slate-400 hover:text-cyan-400 transition-colors text-sm underline disabled:opacity-50">
-                    {t(language, 'saveGame')}
-                </button>
-            </div>
         </div>
       </div>
     </div>

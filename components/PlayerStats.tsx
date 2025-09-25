@@ -70,15 +70,16 @@ const KnightIconClass = () => <svg {...iconPropsClass} viewBox="0 0 24 24" strok
 const RogueIconClass = () => <svg {...iconPropsClass} viewBox="0 0 24 24" stroke="currentColor"><path d="M3 3l7 7-7 7 7-7-7-7z"></path><path d="M21 21l-7-7 7-7-7 7 7 7z"></path></svg>;
 const ScholarIconClass = () => <svg {...iconPropsClass} viewBox="0 0 24 24" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5v-10A2.5 2.5 0 0 1 6.5 2z"></path></svg>;
 const TricksterIconClass = () => <svg {...iconPropsClass} viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path></svg>;
+const DarkFeyIconClass = () => <svg {...iconPropsClass} viewBox="0 0 24 24" stroke="currentColor"><path d="M22 12c-2-2-2-6-4-7s-5 1-7 1-5-2-7-1-2 5-4 7 1 6 1 6-2 4 5 4 5-3 7-3 5 5 5 5-2-4 1-6-1-4-1-4z" /></svg>;
 
 const classIcons: { [key: string]: React.ReactElement } = {
-  'Knight': <KnightIconClass />, 'Rogue': <RogueIconClass />, 'Scholar': <ScholarIconClass />, 'Trickster': <TricksterIconClass />,
-  '騎士': <KnightIconClass />, '盜賊': <RogueIconClass />, '學者': <ScholarIconClass />, '詐欺師': <TricksterIconClass />,
-  '骑士': <KnightIconClass />, '盗贼': <RogueIconClass />, '学者': <ScholarIconClass />, '欺诈师': <TricksterIconClass />,
-  // FIX: Removed duplicate '学者' key, which is the same for both Japanese and Simplified Chinese and was already defined.
-  'ナイト': <KnightIconClass />, '盗賊': <RogueIconClass />, 'トリックスター': <TricksterIconClass />,
-  'Caballero': <KnightIconClass />, 'Pícaro': <RogueIconClass />, 'Erudito': <ScholarIconClass />, 'Embaucador': <TricksterIconClass />,
-  '기사': <KnightIconClass />, '도적': <RogueIconClass />, '학자': <ScholarIconClass />, '사기꾼': <TricksterIconClass />,
+  'Knight': <KnightIconClass />, 'Rogue': <RogueIconClass />, 'Scholar': <ScholarIconClass />, 'Trickster': <TricksterIconClass />, 'Dark Master': <DarkFeyIconClass />,
+  '騎士': <KnightIconClass />, '盜賊': <RogueIconClass />, '學者': <ScholarIconClass />, '詐欺師': <TricksterIconClass />, '暗魔獸': <DarkFeyIconClass />,
+  '骑士': <KnightIconClass />, '盗贼': <RogueIconClass />, '学者': <ScholarIconClass />, '欺诈师': <TricksterIconClass />, '暗魔兽': <DarkFeyIconClass />,
+  // FIX: Removed duplicate object key '学者'. The key was already defined for Simplified Chinese.
+  'ナイト': <KnightIconClass />, '盗賊': <RogueIconClass />, 'トリックスター': <TricksterIconClass />, '暗魔獣': <DarkFeyIconClass />,
+  'Caballero': <KnightIconClass />, 'Pícaro': <RogueIconClass />, 'Erudito': <ScholarIconClass />, 'Embaucador': <TricksterIconClass />, 'Maestro Oscuro': <DarkFeyIconClass />,
+  '기사': <KnightIconClass />, '도적': <RogueIconClass />, '학자': <ScholarIconClass />, '사기꾼': <TricksterIconClass />, '암흑 마수': <DarkFeyIconClass />,
 };
 
 const EquipmentSlotComponent: React.FC<{

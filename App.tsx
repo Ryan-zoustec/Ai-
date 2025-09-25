@@ -5,9 +5,43 @@ import GameScreen from './components/GameScreen';
 import GameOverScreen from './components/GameOverScreen';
 import { GameState, PlayerClass, SaveData, Language, Item, AIModel, Gender, EquipmentSlots } from './types';
 import { startNewGame, processPlayerAction, generateIllustration as generateIllustrationApi, getSuggestedItemAction } from './services/aiService';
-import { ALL_PLAYER_CLASSES, TRICKSTER_CLASS, INITIAL_GAME_STATE, t } from './constants';
+import { ALL_PLAYER_CLASSES, TRICKSTER_CLASS, DARK_MASTER_CLASS, INITIAL_GAME_STATE, t } from './constants';
 
 type Screen = 'start' | 'character' | 'game' | 'gameover';
+
+/**
+ * Gets the initial language based on the user's browser settings.
+ * Defaults to 'en' if the browser language is not supported.
+ */
+const getInitialLanguage = (): Language => {
+    const supportedLanguages: Language[] = ['zh-TW', 'zh-CN', 'en', 'ja', 'es', 'ko'];
+    const browserLang = navigator.language;
+
+    // 1. Check for an exact match among supported languages.
+    if (supportedLanguages.includes(browserLang as Language)) {
+        return browserLang as Language;
+    }
+
+    // 2. Check for a primary language match (e.g., 'en' from 'en-US').
+    const primaryLang = browserLang.split('-')[0];
+    if (supportedLanguages.includes(primaryLang as Language)) {
+        return primaryLang as Language;
+    }
+
+    // 3. Handle special cases for Chinese variants.
+    if (primaryLang === 'zh') {
+        const region = browserLang.split('-')[1]?.toUpperCase();
+        if (region === 'CN' || region === 'SG') {
+            return 'zh-CN';
+        }
+        // Default other Chinese variants (e.g., HK, MO) to Traditional Chinese.
+        return 'zh-TW';
+    }
+
+    // 4. Default to English if no match is found.
+    return 'en';
+};
+
 
 /**
  * Cleans the equipment data from the AI, converting placeholder "Empty" items back to null.
@@ -34,29 +68,35 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [language, setLanguage] = useState<Language>('zh-TW');
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const [isVoiceoverEnabled, setIsVoiceoverEnabled] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
   const [aiModel, setAiModel] = useState<AIModel>('gemini');
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
   
-  // Use localStorage to track wins for unlocking Trickster
-  const hasWonGame = () => localStorage.getItem('hasWonGame') === 'true';
-  const setHasWonGame = () => localStorage.setItem('hasWonGame', 'true');
+  // Use localStorage to track unlocks for secret classes
+  const isTricksterUnlocked = () => localStorage.getItem('isTricksterUnlocked') === 'true';
+  const setTricksterUnlocked = () => localStorage.setItem('isTricksterUnlocked', 'true');
+  const isDarkMasterUnlocked = () => localStorage.getItem('isDarkMasterUnlocked') === 'true';
+  const setDarkMasterUnlocked = () => localStorage.setItem('isDarkMasterUnlocked', 'true');
 
-  const getInitialClasses = (lang: Language): PlayerClass[] => {
-      const baseClasses = ALL_PLAYER_CLASSES[lang];
-      if (hasWonGame()) {
-          return [...baseClasses, TRICKSTER_CLASS[lang]];
+
+  const getInitialClasses = useCallback((lang: Language): PlayerClass[] => {
+      const availableClasses = [...ALL_PLAYER_CLASSES[lang]];
+      if (isTricksterUnlocked()) {
+          availableClasses.push(TRICKSTER_CLASS[lang]);
       }
-      return baseClasses;
-  }
+      if (isDarkMasterUnlocked()){
+          availableClasses.push(DARK_MASTER_CLASS[lang]);
+      }
+      return availableClasses;
+  }, []);
   
   const [classes, setClasses] = useState<PlayerClass[]>(() => getInitialClasses(language));
   
   useEffect(() => {
     setClasses(getInitialClasses(language));
-  }, [language]);
+  }, [language, getInitialClasses]);
 
   const speak = useCallback((text: string) => {
     if ('speechSynthesis' in window && isVoiceoverEnabled) {
@@ -181,6 +221,7 @@ const App: React.FC = () => {
         actionResult: response.action_result,
         chapterTitle: response.chapter_title,
         strongEnemiesDefeated: response.strong_enemies_defeated,
+        alignment: response.alignment || 0,
 
         // Set initial turn values
         turnCount: 1,
@@ -197,26 +238,30 @@ const App: React.FC = () => {
 
   const processAction = async (action: string, selectedItems: Item[]) => {
     if (!playerClass || isLoading) return;
+
+    let effectiveAction = action;
+    let effectiveGameState = gameState;
+    let effectiveSelectedItems = selectedItems;
+    const isBossCommand = action.trim() === 'Command:Boss';
+
+    if (isBossCommand) {
+        effectiveGameState = {
+            ...gameState,
+            strongEnemiesDefeated: 3,
+            turnCount: 39, // Ensure boss logic triggers
+        };
+        // A direct prompt for the AI to ensure it generates the boss fight.
+        effectiveAction = "With a surge of power, I arrive at the final chamber and challenge the Crypt Lord to a final battle.";
+        effectiveSelectedItems = []; // Clear selected items for the boss command
+    }
+
     setIsLoading(true);
     setError(null);
 
-    // Create a temporary state for the API call, so UI doesn't show item used before confirmation
-    const tempGameState = { ...gameState };
-    const consumableItems = selectedItems.filter(i => i.type === 'consumable');
-    if (consumableItems.length > 0) {
-        const consumedItemNames = new Set(consumableItems.map(i => i.name));
-        const newInventory = tempGameState.inventory.map(item => {
-            if (consumedItemNames.has(item.name) && item.type === 'consumable') {
-                return { ...item, quantity: (item.quantity || 1) - 1 };
-            }
-            return item;
-        }).filter(item => (item.quantity || 0) > 0);
-        tempGameState.inventory = newInventory;
-    }
-
     try {
-      const response = await processPlayerAction(tempGameState, playerClass, action, selectedItems, language, aiModel, playerGender);
+      const response = await processPlayerAction(effectiveGameState, playerClass, effectiveAction, effectiveSelectedItems, language, aiModel, playerGender);
       
+      // Log the original user action and selected items
       const itemLog = selectedItems.length > 0 ? ` (${selectedItems.map(i => i.name).join(', ')})` : '';
 
       let blessingLog = '';
@@ -230,16 +275,15 @@ const App: React.FC = () => {
       const actionLog = `\n\n> ${action}${itemLog}${blessingLog}\n\n`;
       const newStory = `${gameState.story}${actionLog}${response.story}`;
 
-      // Continuously increment turn count
+      // Continuously increment turn count from the original state's turn count.
       const newTurnCount = gameState.turnCount + 1;
       
-      // Clean the equipment data from the AI before setting state
       const cleanedEquipment = cleanEquipment(response.equipment);
 
       const newGameState: GameState = {
         ...response,
         story: newStory,
-        equipment: cleanedEquipment, // Use the cleaned equipment
+        equipment: cleanedEquipment,
         suggestedActions: response.suggested_actions,
         gameOver: response.game_over,
         actionResult: response.action_result,
@@ -248,14 +292,22 @@ const App: React.FC = () => {
         turnCount: newTurnCount,
         illustrations: gameState.illustrations, // Carry over existing illustrations
         blessings: response.blessings || [],
+        alignment: response.alignment,
       };
       setGameState(newGameState);
 
       if (response.win) {
-        setHasWonGame();
+        // Winning with any class unlocks the Trickster
+        setTricksterUnlocked();
+        // Winning with the Trickster unlocks the Dark Master
+        if (playerClass.id === 'trickster') {
+            setDarkMasterUnlocked();
+        }
       }
 
-      if (response.game_over || response.win) {
+      // Only transition on explicit game_over flag (for losses).
+      // The win state is handled on the GameScreen itself.
+      if (response.game_over) {
         setCurrentScreen('gameover');
       }
     } catch (e: any) {
@@ -275,8 +327,10 @@ const App: React.FC = () => {
 
         // Build a detailed description of the character for the illustration prompt
         // by using the item descriptions instead of their names.
+        // FIX: The type of `item` is inferred as `unknown` from `Object.values`.
+        // We cast it to `Item` to safely access the `.slot` property after checking for null.
         const equipmentItems = Object.values(gameState.equipment)
-            .filter((item): item is Item => !!item && item.slot !== 'companion');
+            .filter((item): item is Item => !!item && (item as Item).slot !== 'companion');
         
         const equipmentDetails = equipmentItems.map(item => item.description).join('. ');
 
@@ -361,6 +415,35 @@ const App: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadAdventure = () => {
+    if (!playerClass) return;
+    const saveData: SaveData = {
+      gameState,
+      playerClass,
+      language,
+      isVoiceoverEnabled,
+      speechRate,
+      aiModel,
+      playerGender,
+      selectedVoiceURI,
+    };
+
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}h${String(now.getMinutes()).padStart(2, '0')}m`;
+    
+    const sanitize = (str: string) => str.replace(/[\\?%*:|"<>]/g, '').replace(/\s+/g, '_');
+
+    const filename = `AdventureLog-${sanitize(playerClass.name)}-${timestamp}.json`;
+
+    const blob = new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleLoad = (saveData: SaveData) => {
     // Prime the speech engine on user click to enable autoplay on iOS
     primeSpeechSynthesis(saveData.isVoiceoverEnabled);
@@ -369,6 +452,7 @@ const App: React.FC = () => {
         ...saveData.gameState,
         illustrations: saveData.gameState.illustrations || {}, // Ensure illustrations object exists
         blessings: saveData.gameState.blessings || [], // Ensure blessings object exists for older saves
+        alignment: saveData.gameState.alignment || 0, // Handle older saves without alignment
     });
     setPlayerClass(saveData.playerClass);
     setLanguage(saveData.language);
@@ -391,19 +475,27 @@ const App: React.FC = () => {
   };
   
   const handleUnlockTrickster = () => {
-    setClasses(prevClasses => {
-        const hasTrickster = prevClasses.some(c => c.id === 'trickster');
-        if (!hasTrickster) {
-            return [...prevClasses, TRICKSTER_CLASS[language]];
-        }
-        return prevClasses;
-    });
+    if (!isTricksterUnlocked()) {
+      setTricksterUnlocked();
+      setClasses(getInitialClasses(language));
+    }
+  };
+  
+  const handleUnlockDarkMaster = () => {
+    if (!isDarkMasterUnlocked()) {
+      setDarkMasterUnlocked();
+      setClasses(getInitialClasses(language));
+    }
+  };
+
+  const handleProceedToGameOver = () => {
+    setCurrentScreen('gameover');
   };
 
   const renderScreen = () => {
     switch (currentScreen) {
       case 'character':
-        return <CharacterCreationScreen classes={classes} onSelectClass={handleClassSelect} language={language} onUnlockTrickster={handleUnlockTrickster} />;
+        return <CharacterCreationScreen classes={classes} onSelectClass={handleClassSelect} language={language} onUnlockTrickster={handleUnlockTrickster} onUnlockDarkMaster={handleUnlockDarkMaster} />;
       case 'game':
         if (!playerClass) {
           handleRestart();
@@ -423,6 +515,7 @@ const App: React.FC = () => {
             isGeneratingImage={isGeneratingImage}
             onGenerateIllustration={handleGenerateIllustration}
             onGetSuggestion={handleGetItemUsageSuggestion}
+            onProceedToGameOver={handleProceedToGameOver}
           />
         );
       case 'gameover':
@@ -433,6 +526,7 @@ const App: React.FC = () => {
           story={gameState.story}
           illustration={gameState.illustrations[gameState.turnCount]}
           isGeneratingIllustration={isGeneratingImage}
+          onDownloadAdventure={handleDownloadAdventure}
         />;
       case 'start':
       default:

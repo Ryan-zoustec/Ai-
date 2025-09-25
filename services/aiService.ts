@@ -30,6 +30,7 @@ export const startNewGame = async (
         illustrations: {},
         strongEnemiesDefeated: 0,
         blessings: playerClass.initialBlessings,
+        alignment: 0,
     };
 
     // The starting prompt is defined in the player class constants.

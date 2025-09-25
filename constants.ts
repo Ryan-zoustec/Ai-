@@ -24,6 +24,7 @@ export const INITIAL_GAME_STATE: GameState = {
   illustrations: {},
   strongEnemiesDefeated: 0,
   blessings: [],
+  alignment: 0,
 };
 
 // --- BLESSINGS ---
@@ -47,6 +48,11 @@ const TRICKSTER_BLESSINGS_EN: Blessing[] = [
   { name: "Fabricated Fate", description: "Lies told have a high chance of coming true in an unexpected way." },
   { name: "Fragile Favor", description: "Luck is permanently fixed at 100, but health cannot exceed 1." }
 ];
+const DARK_MASTER_BLESSINGS_EN: Blessing[] = [
+    { name: "Predator's Evolution", description: "Upon defeating an enemy, you may consume it to permanently gain health and luck. The amount of health and luck restored is directly proportional to the enemy's strength, but the moral toll is heavy." },
+    { name: "Echoes of Knowledge", description: "When consuming a 'Faint Memory' or a knowledgeable entity, you have a chance to gain a new, temporary blessing based on their skills." },
+    { name: "Primal Fear", description: "Your terrifying presence has a chance to stun weaker enemies at the start of combat, but also makes peaceful interactions nearly impossible." }
+];
 const KNIGHT_BLESSINGS_ZH_TW: Blessing[] = [
     { name: "神聖韌性", description: "在恢復生命值的同時，會恢復等量的幸運值。" },
     { name: "征服者之運", description: "在擊敗敵人的同時，會恢復大量的幸運值。" },
@@ -66,6 +72,11 @@ const TRICKSTER_BLESSINGS_ZH_TW: Blessing[] = [
     { name: "扭曲之言", description: "所述說的話語，有五成機率產生反噬，造成意想不到的負面後果。" },
     { name: "虛構之運", description: "所述說的謊言，有高機率以意外的情況成真。" },
     { name: "脆弱恩典", description: "幸運值永遠為100，但生命值最高只能為1。" }
+];
+const DARK_MASTER_BLESSINGS_ZH_TW: Blessing[] = [
+    { name: "掠食進化", description: "擊敗敵人後，你可以選擇吞噬它，永久獲得生命值和幸運值。恢復的生命值和幸運值與吞噬的目標強度成正比，但道德的代價是沉重的。" },
+    { name: "知識迴響", description: "吞噬「模糊的記憶」或有知識的實體時，你有機會根據他們的技能獲得一個新的、暫時的祝福。" },
+    { name: "原始恐懼", description: "你可怕的存在有機會在戰鬥開始時震懾較弱的敵人，但這也使得和平的互動幾乎不可能。" }
 ];
 const KNIGHT_BLESSINGS_ZH_CN: Blessing[] = [
     { name: "神圣韧性", description: "在恢复生命值的同时，会恢复等量的幸运值。" },
@@ -87,6 +98,11 @@ const TRICKSTER_BLESSINGS_ZH_CN: Blessing[] = [
     { name: "虚构之运", description: "所述说的谎言，有高机率以意外的情况成真。" },
     { name: "脆弱恩典", description: "幸运值永远为100，但生命值最高只能为1。" }
 ];
+const DARK_MASTER_BLESSINGS_ZH_CN: Blessing[] = [
+    { name: "掠食进化", description: "击败敌人后，你可以选择吞噬它，永久获得生命值和幸运值。恢复的生命值和幸运值与吞噬的目标强度成正比，但道德的代价是沉重的。" },
+    { name: "知识回响", description: "吞噬“模糊的记忆”或有知识的实体时，你有机会根据他们的技能获得一个新的、暂时的祝福。" },
+    { name: "原始恐惧", description: "你可怕的存在有机会在战斗开始时震慑较弱的敌人，但这也使得和平的互动几乎不可能。" }
+];
 const KNIGHT_BLESSINGS_JA: Blessing[] = [
     { name: "聖なる回復力", description: "体力を回復すると、同量の幸運も回復する。" },
     { name: "征服者の幸運", description: "敵を倒すと、大量の幸運が回復する。" },
@@ -106,6 +122,11 @@ const TRICKSTER_BLESSINGS_JA: Blessing[] = [
     { name: "ねじれた言葉", description: "話した言葉が、50%の確率で裏目に出て、意図しない、しばしば否定的な結果を引き起こす。" },
     { name: "作り上げられた運命", description: "ついた嘘が、高い確率で予期せぬ形で現実になる。" },
     { name: "脆い恩恵", description: "幸運は常に100に固定されるが、体力は1を超えることはできない。" }
+];
+const DARK_MASTER_BLESSINGS_JA: Blessing[] = [
+    { name: "捕食者の進化", description: "敵を倒した後、それを消費して体力和幸運を永久に得ることができる。回復する体力と幸運は敵の強さに正比例するが、道徳的な代償は大きい。" },
+    { name: "知識の残響", description: "「かすかな記憶」や知識豊富な存在を消費すると、彼らのスキルに基づいて新しい一時的な祝福を得るチャンスがある。" },
+    { name: "原初の恐怖", description: "あなたの恐ろしい存在は、戦闘開始時に弱い敵を気絶させる可能性があるが、平和的な対話もほぼ不可能にする。" }
 ];
 const KNIGHT_BLESSINGS_ES: Blessing[] = [
     { name: "Resiliencia Sagrada", description: "Cuando se restaura la salud, la suerte se restaura en la misma cantidad." },
@@ -127,6 +148,11 @@ const TRICKSTER_BLESSINGS_ES: Blessing[] = [
     { name: "Destino Fabricado", description: "Las mentiras contadas tienen una alta probabilidad de hacerse realidad de una manera inesperada." },
     { name: "Favor Frágil", description: "La suerte se fija permanentemente en 100, pero la salud no puede exceder 1." }
 ];
+const DARK_MASTER_BLESSINGS_ES: Blessing[] = [
+    { name: "Evolución del Depredador", description: "Al derrotar a un enemigo, puedes consumirlo para ganar permanentemente salud y suerte. La cantidad de salud y suerte restaurada es directamente proporcional a la fuerza del enemigo, pero el costo moral es alto." },
+    { name: "Ecos del Conocimiento", description: "Al consumir un 'Recuerdo Vago' o una entidad con conocimientos, tienes la oportunidad de obtener una nueva bendición temporal basada en sus habilidades." },
+    { name: "Miedo Primordial", description: "Tu aterradora presencia tiene la posibilidad de aturdir a los enemigos más débiles al comienzo del combate, pero también hace que las interacciones pacíficas sean casi imposibles." }
+];
 const KNIGHT_BLESSINGS_KO: Blessing[] = [
     { name: "신성한 회복력", description: "체력을 회복하면 같은 양의 행운도 회복됩니다." },
     { name: "정복자의 행운", description: "적을 물리치면 대량의 행운이 회복됩니다." },
@@ -146,6 +172,11 @@ const TRICKSTER_BLESSINGS_KO: Blessing[] = [
     { name: "뒤틀린 말", description: "한 말이 50% 확률로 역효과를 낳아, 의도치 않은 부정적인 결과를 초래합니다。" },
     { name: "조작된 운명", description: "한 거짓말이 높은 확률로 예상치 못한 방식으로 실현됩니다." },
     { name: "취약한 은총", description: "행운은 영구적으로 100으로 고정되지만 체력은 1을 초과할 수 없습니다." }
+];
+const DARK_MASTER_BLESSINGS_KO: Blessing[] = [
+    { name: "포식자의 진화", description: "적을 물리친 후, 그것을 소비하여 체력과 행운을 영구적으로 얻을 수 있습니다. 회복되는 체력과 행운의 양은 적의 힘에 정비례하지만, 도덕적 대가가 큽니다." },
+    { name: "지식의 메아리", description: "'희미한 기억'이나 지식이 있는 존재를 소비할 때, 그들의 기술에 기반한 새로운 일시적인 축복을 얻을 기회가 있습니다." },
+    { name: "원초적 공포", description: "당신의 끔찍한 존재는 전투 시작 시 약한 적을 기절시킬 수 있지만, 평화로운 상호작용 또한 거의 불가능하게 만듭니다." }
 ];
 
 
@@ -208,7 +239,7 @@ const SCHOLAR_CLASS_EN: PlayerClass = {
   },
   initialInventory: [
     { name: 'Ancient Arcane Codex', type: 'non-consumable', description: 'A heavy tome bound in strange leather, filled with cryptic lore and forbidden rituals.' },
-    { name: 'Mana Potion', type: 'consumable', quantity: 1, description: 'A swirling, luminous blue liquid that restores a measure of one\'s magical reserves.' }
+    { name: 'Mana Potion', type: 'consumable', quantity: 1, description: 'A swirling, luminous blue liquid that temporarily overcharges your magical abilities, making your next spell incredibly potent.' }
   ],
   startingPrompt: 'Driven by a thirst for lost knowledge, your research has led you to the Whispering Crypt, a site rumored to hold secrets of a bygone, powerful era. You stand at the entrance, your old staff in hand. The very air crackles with a latent energy you can feel on your skin, a dangerous symphony of forgotten power. This place is not merely a tomb; it is a library of the forbidden. Describe the first forgotten secret you seek to unveil amidst the ominous silence.',
   initialBlessings: SCHOLAR_BLESSINGS_EN,
@@ -232,6 +263,26 @@ const TRICKSTER_CLASS_EN: PlayerClass = {
   startingPrompt: "You are a wielder of Kotodama, the power to shape reality with words. Your body is frail, but your will is iron. You have come to the Whispering Crypt not for gold, but to temper your abilities in a place where the veil between worlds is thin. The whispers of the crypt are not just threats; they are echoes of power, a symphony you intend to conduct. As the stone door grinds shut, sealing you in darkness, you feel a thrill not of amusement, but of challenge. Describe the first 'truth' you speak into existence to test the crypt's response to your power.",
   initialBlessings: TRICKSTER_BLESSINGS_EN,
 };
+const DARK_MASTER_CLASS_EN: PlayerClass = {
+  id: 'dark_master',
+  name: 'Dark Master',
+  description: "A demonic beast from an ancient saga, it awoke to human intellect after its first taste of man. Now a 'Dark Master', it struggles between primal hunger and a stolen conscience. It devours its victims not just for sustenance, but to assimilate their very abilities and knowledge, growing ever more powerful and conflicted.",
+  initialHealth: 40,
+  initialLuck: 80,
+  initialEquipment: {
+    head: { name: 'Crimson Mane', type: 'equippable', slot: 'head', description: "Not an item, but the beast's own fiery red fur, stiff as bristles. It offers some protection and glows faintly in the dark." },
+    body: { name: 'Tattered Scholar\'s Robe', type: 'equippable', slot: 'body', description: "The tattered remains of its first human meal. The lingering scent of paper and ink is a constant, unsettling reminder of its newfound consciousness." },
+    rightHand: { name: 'Voracious Claws', type: 'equippable', slot: 'rightHand', description: "The beast's natural weapons. They can tear through flesh and, it is said, consume the very essence of its victims." },
+    feet: { name: 'Shadow-Padded Paws', type: 'equippable', slot: 'feet', description: "Its paws are naturally silent, allowing it to move without a sound, a remnant of its predatory nature." },
+    leftHand: null, waist: null, companion: null,
+  },
+  initialInventory: [
+    { name: 'Essence of the Consumed', type: 'non-consumable', description: "A swirling, ethereal core within the beast. It holds the memories and knowledge of those it has devoured. It hums with a sorrowful energy." },
+    { name: 'Faint Memory', type: 'consumable', quantity: 1, description: "A fleeting memory from a past victim. Consuming it might reveal a forgotten secret or a useful skill, but the psychic backlash is unpredictable." },
+  ],
+  startingPrompt: "The transformation was recent. The man's memories—his fear, his life, his knowledge—still scream within you. You are no longer just a beast. You are... something else. The Whispering Crypt calls, not with promises of treasure, but with the scent of power and forgotten essences. You are hungry, not just for flesh, but for answers. As you stand before the entrance, a primal instinct wars with a newfound consciousness. Describe your first step, beast or man?",
+  initialBlessings: DARK_MASTER_BLESSINGS_EN,
+};
 
 // --- TRADITIONAL CHINESE PLAYER CLASSES ---
 const KNIGHT_CLASS_ZH_TW: PlayerClass = {
@@ -242,7 +293,7 @@ const KNIGHT_CLASS_ZH_TW: PlayerClass = {
   initialLuck: 60,
   initialEquipment: {
     head: { name: '老舊的頭盔', type: 'equippable', slot: 'head', description: '一頂簡單但實用的頭盔，曾不只一次保護佩戴者免受致命打擊。它會阻礙周邊視野。' },
-    body: { name: '老舊的騎士鎧甲', type: 'equippable', slot: 'body', description: '厚重的板甲，上面佈滿了無數戰鬥留下的凹痕和疤痕。它以犧牲機動性為代價，提供堅實的保護。' },
+    body: { name: '老舊的騎士鎧甲', type: 'equippable', slot: 'body', description: '厚重的板甲，上面佈滿了無數戰鬥留下的凹痕和疤痕。它以犧牲機動性為代价，提供堅實的保護。' },
     rightHand: { name: '戰損短劍', type: 'equippable', slot: 'rightHand', description: '一把見證了無數衝突的可靠刀刃。雖然劍鋒有缺口，但其鬥志未曾磨損。' },
     companion: { name: '王國守護犬', type: 'summon_companion', slot: 'companion', description: '一隻忠誠且受過戰鬥訓練的犬類夥伴。牠的感官敏銳，咬合力驚人。' },
     leftHand: { name: '老舊的騎士盾', type: 'equippable', slot: 'leftHand', description: '一面用鐵條加固的沉重木盾，上面帶有褪色的紋章。它曾抵擋無數次攻擊，是韌性的證明。' },
@@ -292,7 +343,7 @@ const SCHOLAR_CLASS_ZH_TW: PlayerClass = {
   },
   initialInventory: [
     { name: '古老的神秘法典', type: 'non-consumable', description: '一本用奇特皮革裝訂的厚重典籍，裡面充滿了神秘的知識和禁忌的儀式。' },
-    { name: '法力藥水', type: 'consumable', quantity: 1, description: '一種旋轉發光的藍色液體，能恢復一部分的法力儲備。' }
+    { name: '法力藥水', type: 'consumable', quantity: 1, description: '一種旋轉發光的藍色液體，能短暫地讓你的魔法能力超載，使你的下一個法術變得異常強大。' }
   ],
   startingPrompt: '在對失落知識的渴求驅使下，你的研究將你引至低語地穴，一個據說藏有遠古強大時代秘密的地點。你手持舊杖，站在入口處。空氣中充滿著潛在的能量，在你的皮膚上噼啪作響，宛如一曲由被遺忘的力量譜寫的危險交響樂。這裡不僅是墳墓，更是一座禁忌的圖書館。描述你在不祥的寂靜中，試圖揭開的第一個被遺忘的秘密。',
   initialBlessings: SCHOLAR_BLESSINGS_ZH_TW,
@@ -310,11 +361,31 @@ const TRICKSTER_CLASS_ZH_TW: PlayerClass = {
     body: null, leftHand: null, rightHand: null, feet: null,
   },
   initialInventory: [
-    { name: '閃亮亮但廉價的硬幣', type: 'consumable', description: '一枚閃閃發光的硬幣，看起來價值連城，但任何專家都能看出這只是一塊鍍金的鐵片。非常適合用來製造聲響、轉移注意力，或是在一場注定會輸的賭局中派上用場。' },
+    { name: '閃亮亮但廉價的硬幣', type: 'consumable', description: '一枚閃閃發光的硬幣，看起來價值連城，但任何專家都能看出這只是一塊鍍金的鐵片。非常適合用來製造聲響、轉移注意力，或是在一场注定會輸的賭局中派上用場。' },
     { name: '空白的卷軸', type: 'consumable', description: '一卷乾淨的羊皮紙，上面什麼也沒寫。可以用來記錄任何事情，或是讓別人相信上面寫著他們最渴望（或最恐懼）看到的內容。' },
   ],
   startingPrompt: '你是言靈的操縱者，能用話語塑造現實。你的肉體雖弱，意志卻如鋼鐵。你來到低語地穴並非為了黃金，而是為了一個能磨練你能力的場所，一個現實與異界帷幕稀薄之地。地穴的呢喃不僅是威脅，更是力量的回響，一首你打算親自指揮的交響樂。當石門轟然關上，將你封入黑暗時，你感到的不是戲謔的快感，而是挑戰的興奮。描述你為了測試地穴對你力量的回應，所說出的第一個「真實」。',
   initialBlessings: TRICKSTER_BLESSINGS_ZH_TW,
+};
+const DARK_MASTER_CLASS_ZH_TW: PlayerClass = {
+  id: 'dark_master',
+  name: '暗魔獸',
+  description: "源自東方奇書的魔獸，在初嚐人肉後覺醒了人類的智慧。如今，作為一頭『暗魔獸』，牠在原始的飢餓與竊來的良知之間掙扎。牠吞噬獵物不僅是為了生存，更是為了吸收其能力與知識，使自身變得更強大，內心也更加矛盾。",
+  initialHealth: 40,
+  initialLuck: 80,
+  initialEquipment: {
+    head: { name: '赤紅之鬃', type: 'equippable', slot: 'head', description: "並非外物，而是自身鮮紅如火的鬃毛，堅硬如刺。它能提供些許保護，並在黑暗中發出微光。" },
+    body: { name: '破碎的學者長袍', type: 'equippable', slot: 'body', description: "第一個被吞噬的人類的衣物殘骸。紙張與墨水的氣味縈繞不去，是你新獲得的意識一個持續且不安的提醒。" },
+    rightHand: { name: '噬魂之爪', type: 'equippable', slot: 'rightHand', description: "這頭野獸的天生武器。它們能撕裂血肉，據說還能吞噬受害者的精華。" },
+    feet: { name: '踏影之足', type: 'equippable', slot: 'feet', description: "牠的腳掌天生無聲，讓牠能悄然移動，這是其掠食者本性的殘留。" },
+    leftHand: null, waist: null, companion: null,
+  },
+  initialInventory: [
+    { name: '噬者精華', type: 'non-consumable', description: "野獸體內一個旋轉的、飄渺的核心。它承載著被吞噬者的記憶和知識。它以一股悲傷的能量嗡嗡作響。" },
+    { name: '模糊的記憶', type: 'consumable', quantity: 1, description: "來自過去受害者的短暫記憶。吞噬它可能會揭示一個被遺忘的秘密或一項有用的技能，但心靈上的反噬是不可預測的。" },
+  ],
+  startingPrompt: "轉化才剛發生。那個男人的記憶——他的恐懼、他的人生、他的知識——仍在你的體内尖叫。你不再只是野獸。你是……別的東西。低語地穴在呼喚你，不是因為寶藏，而是因為力量和被遺忘精華的氣味。你感到飢餓，不僅是對血肉，也是對答案。當你站在入口前，原始的本能與新生的意識交戰。描述你的第一步，選擇作為野獸，還是作為人？",
+  initialBlessings: DARK_MASTER_BLESSINGS_ZH_TW,
 };
 
 // --- SIMPLIFIED CHINESE PLAYER CLASSES ---
@@ -376,7 +447,7 @@ const SCHOLAR_CLASS_ZH_CN: PlayerClass = {
   },
   initialInventory: [
     { name: '古老的神秘法典', type: 'non-consumable', description: '一本用奇特皮革装订的厚重典籍，里面充满了神秘的知识和禁忌的仪式。' },
-    { name: '法力药水', type: 'consumable', quantity: 1, description: '一种旋转发光的蓝色液体，能恢复一部分的法力储备。' }
+    { name: '法力药水', type: 'consumable', quantity: 1, description: '一种旋转发光的蓝色液体，能短暂地让你的魔法能力超载，使你的下一个法术变得异常强大。' }
   ],
   startingPrompt: '在对失落知识的渴求驱使下，你的研究将你引至低语地穴，一个据说藏有远古强大时代秘密的地点。你手持旧杖，站在入口处。空气中充满着潜在的能量，在你的皮肤上噼啪作响，宛如一曲由被遗忘的力量谱写的危险交响乐。这里不仅是坟墓，更是一座禁忌的图书馆。描述你在不祥的寂静中，试图揭开的第一个被遗忘的秘密。',
   initialBlessings: SCHOLAR_BLESSINGS_ZH_CN,
@@ -400,6 +471,27 @@ const TRICKSTER_CLASS_ZH_CN: PlayerClass = {
   startingPrompt: '你是言灵的操纵者，能用话语塑造现实。你的肉体虽弱，意志却如钢铁。你来到低语地穴并非为了黄金，而是为了一个能磨练你能力的场所，一个现实与异界帷幕稀薄之地。地穴的呢喃不仅是威胁，更是力量的回响，一首你打算亲自指挥的交响乐。当石门轰然关上，将你封入黑暗时，你感到的不是戏谑的快感，而是挑战的兴奋。描述你为了测试地穴对你力量的回应，所说出的第一个「真实」。',
   initialBlessings: TRICKSTER_BLESSINGS_ZH_CN,
 };
+const DARK_MASTER_CLASS_ZH_CN: PlayerClass = {
+  id: 'dark_master',
+  name: '暗魔兽',
+  description: "源自东方奇书的魔兽，在初尝人肉后觉醒了人类的智慧。如今，作为一头‘暗魔兽’，它在原始的饥饿与窃来的良知之间挣扎。它吞噬猎物不仅是为了生存，更是为了吸收其能力与知识，使自身变得更强大，内心也更加矛盾。",
+  initialHealth: 40,
+  initialLuck: 80,
+  initialEquipment: {
+    head: { name: '赤红之鬃', type: 'equippable', slot: 'head', description: "并非外物，而是自身鲜红如火的鬃毛，坚硬如刺。它能提供些许保护，并在黑暗中发出微光。" },
+    body: { name: '破碎的学者长袍', type: 'equippable', slot: 'body', description: "第一个被吞噬的人类的衣物残骸。纸张与墨水的​​气味萦绕不去，是你新获得的意识一个持续且不安的提醒。" },
+    rightHand: { name: '噬魂之爪', type: 'equippable', slot: 'rightHand', description: "这头野兽的天生武器。它们能撕裂血肉，据说还能吞噬受害者的精华。" },
+    feet: { name: '踏影之足', type: 'equippable', slot: 'feet', description: "它的脚掌天生无声，让它能悄然移动，这是其掠食者本性的残留。" },
+    leftHand: null, waist: null, companion: null,
+  },
+  initialInventory: [
+    { name: '噬者精华', type: 'non-consumable', description: "野兽体内一个旋转的、飘渺的核心。它承载着被吞噬者的记忆和知识。它以一股悲伤的能量嗡嗡作响。" },
+    { name: '模糊的记忆', type: 'consumable', quantity: 1, description: "来自过去受害者的短暂记忆。吞噬它可能会揭示一个被遗忘的秘密或一项有用的技能，但心灵上的反噬是不可预测的。" },
+  ],
+  startingPrompt: "转化才刚发生。那个男人的记忆——他的恐惧、他的人生、他的知识——仍在你的体内尖叫。你不再只是野兽。你是……别的东西。低语地穴在呼唤你，不是因为宝藏，而是因为力量和被遗忘精华的气味。你感到饥饿，不仅是对血肉，也是对答案。当你站在入口前，原始的本能与新生的意识交战。描述你的第一步，选择作为野兽，还是作为人？",
+  initialBlessings: DARK_MASTER_BLESSINGS_ZH_CN,
+};
+
 
 // --- JAPANESE PLAYER CLASSES ---
 const KNIGHT_CLASS_JA: PlayerClass = {
@@ -460,7 +552,7 @@ const SCHOLAR_CLASS_JA: PlayerClass = {
   },
   initialInventory: [
     { name: '古代の秘術の法典', type: 'non-consumable', description: '奇妙な革で装丁された重い書物で、謎めいた伝承と禁じられた儀式が満載だ。' },
-    { name: 'マナポーション', type: 'consumable', quantity: 1, description: '魔法の備えをある程度回復させる、渦巻く発光する青い液体。' }
+    { name: 'マナポーション', type: 'consumable', quantity: 1, description: '渦巻く発光する青い液体で、一時的に魔法能力を過充電させ、次の呪文を信じられないほど強力にする。' }
   ],
   startingPrompt: '失われた知識への渇望に駆られ、あなたの研究は、過ぎ去った強力な時代の秘密を保持していると噂される場所、囁きの地下聖堂へとあなたを導いた。あなたは古い杖を手に、入り口に立つ。空気そのものが、あなたの肌で感じることができる潜在的なエネルギーでパチパチと音を立てており、忘れ去られた力の危険な交響曲だ。この場所は単なる墓ではなく、禁断の図書館なのだ。不吉な沈黙の中で、あなたが最初に明らかにしようとする忘れ去られた秘密を説明せよ。',
   initialBlessings: SCHOLAR_BLESSINGS_JA,
@@ -483,6 +575,26 @@ const TRICKSTER_CLASS_JA: PlayerClass = {
   ],
   startingPrompt: 'あなたは言霊の使い手であり、言葉で現実を形作る力を持っている。あなたの体は弱いが、意志は鉄だ。あなたは金のためではなく、世界の間のベールが薄い場所であなたの能力を鍛えるために囁きの地下聖堂に来た。地下聖堂の囁きは単なる脅威ではなく、力の響きであり、あなたが指揮するつもりの交響曲だ。石の扉が閉まり、あなたを暗闇に閉じ込めると、あなたは娯楽のスリルではなく、挑戦のスリルを感じる。地下聖堂のあなたの力への反応を試すために、あなたが最初に存在させた「真実」を説明せよ。',
   initialBlessings: TRICKSTER_BLESSINGS_JA,
+};
+const DARK_MASTER_CLASS_JA: PlayerClass = {
+  id: 'dark_master',
+  name: '暗魔獣',
+  description: "古代東方の書物から現れた魔獣。初めて人を食らったことで人の知性に目覚めた。今や『暗魔獣』として、原始的な飢えと盗んだ良心との間で葛藤している。獲物を食らうのは生存のためだけでなく、その能力と知識を吸収し、より強力で、より葛藤を深める存在となるためである。",
+  initialHealth: 40,
+  initialLuck: 80,
+  initialEquipment: {
+    head: { name: 'クリムゾンメイン', type: 'equippable', slot: 'head', description: "アイテムではなく、獣自身の燃えるような赤い毛皮で、剛毛のように硬い。多少の防御となり、暗闇でかすかに光る。" },
+    body: { name: 'ぼろぼろの学者のローブ', type: 'equippable', slot: 'body', description: "最初に食らった人間の衣服のなれの果て。紙とインクの残り香が、新たに得た意識を絶えず不安にさせる。" },
+    rightHand: { name: '貪欲な爪', type: 'equippable', slot: 'rightHand', description: "この獣が生まれ持った武器。肉を引き裂き、犠牲者の本質そのものを消費すると言われている。" },
+    feet: { name: '影踏みの足', type: 'equippable', slot: 'feet', description: "その足は生まれつき音を立てず、捕食者としての性質の名残として、音もなく移動することができる。" },
+    leftHand: null, waist: null, companion: null,
+  },
+  initialInventory: [
+    { name: '消費されし者のエッセンス', type: 'non-consumable', description: "獣の体内に渦巻く、霊妙な核。それは喰らった者たちの記憶と知識を保持している。悲しげなエネルギーでうなっている。" },
+    { name: 'かすかな記憶', type: 'consumable', quantity: 1, description: "過去の犠牲者からのかすかな記憶。これを消費すると、忘れられた秘密や有用なスキルが明らかになるかもしれないが、精神的な反動は予測不可能だ。" },
+  ],
+  startingPrompt: "変容は最近のことだ。その男の記憶—彼の恐怖、彼の人生、彼の知識—がまだ君の中で叫んでいる。君はもはやただの獣ではない。君は…何か別のものだ。囁きの地下聖堂が君を呼んでいる。宝の約束ではなく、力と忘れられたエッセンスの匂いで。君は飢えている、肉体だけでなく、答えにも。君は何者なのか？入り口に立つと、原始的な本能と新たに芽生えた意識が戦う。最初の一歩を、獣として踏み出すか、人として踏み出すか、描写せよ。",
+  initialBlessings: DARK_MASTER_BLESSINGS_JA,
 };
 
 // --- SPANISH PLAYER CLASSES ---
@@ -544,7 +656,7 @@ const SCHOLAR_CLASS_ES: PlayerClass = {
   },
   initialInventory: [
     { name: 'Códice Arcano Antiguo', type: 'non-consumable', description: 'Un pesado tomo encuadernado en un cuero extraño, lleno de saber críptico y rituales prohibidos.' },
-    { name: 'Poción de Maná', type: 'consumable', quantity: 1, description: 'Un líquido azul luminoso y arremolinado que restaura una medida de las reservas mágicas de uno.' }
+    { name: 'Poción de Maná', type: 'consumable', quantity: 1, description: 'Un líquido azul luminoso y arremolinado que sobrecarga temporalmente tus habilidades mágicas, haciendo que tu próximo hechizo sea increíblemente potente.' }
   ],
   startingPrompt: 'Impulsado por la sed de conocimiento perdido, tu investigación te ha llevado a la Cripta Susurrante, un lugar que se rumorea que guarda secretos de una era pasada y poderosa. Te encuentras en la entrada, con tu viejo bastón en la mano. El aire mismo crepita con una energía latente que puedes sentir en tu piel, una peligrosa sinfonía de poder olvidado. Este lugar no es simplemente una tumba; es una biblioteca de lo prohibido. Describe el primer secreto olvidado que buscas desvelar en medio del ominoso silencio.',
   initialBlessings: SCHOLAR_BLESSINGS_ES,
@@ -567,6 +679,26 @@ const TRICKSTER_CLASS_ES: PlayerClass = {
   ],
   startingPrompt: 'Eres un portador del Kotodama, el poder de dar forma a la realidad con palabras. Tu cuerpo es frágil, pero tu voluntad es de hierro. Has venido a la Cripta Susurrante no por oro, sino para templar tus habilidades en un lugar donde el velo entre los mundos es delgado. Los susurros de la cripta no son solo amenazas; son ecos de poder, una sinfonía que pretendes dirigir. Mientras la puerta de piedra se cierra, sellándote en la oscuridad, sientes una emoción no de diversión, sino de desafío. Describe la primera "verdad" que hablas para que exista y así probar la respuesta de la cripta a tu poder.',
   initialBlessings: TRICKSTER_BLESSINGS_ES,
+};
+const DARK_MASTER_CLASS_ES: PlayerClass = {
+  id: 'dark_master',
+  name: 'Maestro Oscuro',
+  description: "Una bestia demoníaca de una saga antigua, despertó a un intelecto humano tras su primera probada de hombre. Ahora, como un 'Maestro Oscuro', lucha entre un hambre primigenia y una conciencia robada. Devora a sus víctimas no solo por sustento, sino para asimilar sus mismas habilidades y conocimiento, volviéndose cada vez más poderoso y conflictivo.",
+  initialHealth: 40,
+  initialLuck: 80,
+  initialEquipment: {
+    head: { name: 'Melena Carmesí', type: 'equippable', slot: 'head', description: "No es un objeto, sino el propio pelaje rojo fuego de la bestia, rígido como cerdas. Ofrece algo de protección y brilla débilmente en la oscuridad." },
+    body: { name: 'Túnica de Erudito Andrajosa', type: 'equippable', slot: 'body', description: "Los restos andrajosos de su primera comida humana. El persistente olor a papel y tinta es un recordatorio constante e inquietante de su nueva conciencia." },
+    rightHand: { name: 'Garras Voraces', type: 'equippable', slot: 'rightHand', description: "Las armas naturales de la bestia. Pueden desgarrar la carne y, se dice, consumir la esencia misma de sus víctimas." },
+    feet: { name: 'Zarpas de Sombra', type: 'equippable', slot: 'feet', description: "Sus patas son naturalmente silenciosas, lo que le permite moverse sin hacer ruido, un remanente de su naturaleza depredadora." },
+    leftHand: null, waist: null, companion: null,
+  },
+  initialInventory: [
+    { name: 'Esencia de lo Consumido', type: 'non-consumable', description: "Un núcleo etéreo y arremolinado dentro de la bestia. Contiene los recuerdos y el conocimiento de aquellos a quienes ha devorado. Zumba con una energía triste." },
+    { name: 'Recuerdo Vago', type: 'consumable', quantity: 1, description: "Un recuerdo fugaz de una víctima pasada. Consumirlo podría revelar un secreto olvidado o una habilidad útil, pero la reacción psíquica es impredecible." },
+  ],
+  startingPrompt: "La transformación fue reciente. Los recuerdos del hombre —su miedo, su vida, su conocimiento— todavía gritan dentro de ti. Ya no eres solo una bestia. Eres... otra cosa. La Cripta Susurrante te llama, no con promesas de tesoros, sino con el aroma del poder y las esencias olvidadas. Tienes hambre, no solo de carne, sino de respuestas. ¿Qué eres? Mientras estás de pie ante la entrada, un instinto primario lucha con una conciencia recién descubierta. Describe tu primer paso, ¿bestia u hombre?",
+  initialBlessings: DARK_MASTER_BLESSINGS_ES,
 };
 
 // --- KOREAN PLAYER CLASSES ---
@@ -628,7 +760,7 @@ const SCHOLAR_CLASS_KO: PlayerClass = {
   },
   initialInventory: [
     { name: '고대 비전의 법전', type: 'non-consumable', description: '신비한 지식과 금지된 의식으로 가득 찬 이상한 가죽으로 묶인 무거운 책.' },
-    { name: '마나 물약', type: 'consumable', quantity: 1, description: '마법 예비력을 어느 정도 회복시키는 소용돌이치는 빛나는 파란색 액체.' }
+    { name: '마나 물약', type: 'consumable', quantity: 1, description: '일시적으로 마법 능력을 과충전시켜 다음 주문을 믿을 수 없을 정도로 강력하게 만드는 소용돌이치는 빛나는 파란색 액체.' }
   ],
   startingPrompt: '잃어버린 지식에 대한 갈증에 이끌려, 당신의 연구는 당신을 지나간 강력한 시대의 비밀을 간직하고 있다고 소문난 속삭이는 지하실로 이끌었습니다. 당신은 낡은 지팡이를 손에 들고 입구에 서 있습니다. 공기 자체가 당신의 피부에서 느낄 수 있는 잠재적인 에너지로 탁탁 튀며, 잊혀진 힘의 위험한 교향곡입니다. 이 장소는 단순한 무덤이 아니라 금지된 것들의 도서관입니다. 불길한 침묵 속에서 당신이 밝히려는 첫 번째 잊혀진 비밀을 묘사하십시오.',
   initialBlessings: SCHOLAR_BLESSINGS_KO,
@@ -652,6 +784,26 @@ const TRICKSTER_CLASS_KO: PlayerClass = {
   startingPrompt: '당신은 말로 현실을 만드는 힘인 코토다마의 사용자입니다. 당신의 몸은 허약하지만 의지는 철입니다. 당신은 금을 위해 속삭이는 지하실에 온 것이 아니라, 세계 사이의 장막이 얇은 곳에서 당신의 능력을 단련하기 위해 왔습니다. 지하실의 속삭임은 단순한 위협이 아니라, 당신이 지휘하려는 교향곡인 힘의 메아리입니다. 돌문이 닫히고 당신을 어둠 속에 가두자, 당신은 즐거움의 스릴이 아니라 도전의 스릴을 느낍니다. 당신의 힘에 대한 지하실의 반응을 시험하기 위해 당신이 존재하게 한 첫 번째 "진실"을 묘사하십시오.',
   initialBlessings: TRICKSTER_BLESSINGS_KO,
 };
+const DARK_MASTER_CLASS_KO: PlayerClass = {
+  id: 'dark_master',
+  name: '암흑 마수',
+  description: "고대 동방의 기록에 등장하는 마수. 처음으로 사람을 맛본 후 인간의 지성에 눈을 떴다. 이제 '암흑 마수'로서 원시적인 굶주림과 훔친 양심 사이에서 갈등한다. 희생자를 삼키는 것은 생존을 위해서만이 아니라, 그들의 능력과 지식을 흡수하여 더욱 강력해지고, 내면의 갈등은 더욱 깊어지기 위함이다.",
+  initialHealth: 40,
+  initialLuck: 80,
+  initialEquipment: {
+    head: { name: '진홍 갈기', type: 'equippable', slot: 'head', description: "물건이 아니라, 짐승 자신의 불타는 듯한 붉은 털로, 뻣뻣한 강모와 같습니다. 약간의 보호를 제공하며 어둠 속에서 희미하게 빛납니다." },
+    body: { name: '찢어진 학자의 로브', type: 'equippable', slot: 'body', description: "첫 번째 인간 식사의 찢어진 유물. 남아있는 종이와 잉크 냄새는 새로 얻은 의식에 대한 끊임없고 불안한 상기물입니다." },
+    rightHand: { name: '탐식의 발톱', type: 'equippable', slot: 'rightHand', description: "이 짐승의 타고난 무기. 살을 찢을 수 있으며, 희생자의 정수 자체를 소비한다고 전해집니다." },
+    feet: { name: '그림자를 밟는 발', type: 'equippable', slot: 'feet', description: "그 발은 본래 소리가 나지 않아, 포식자로서의 본성의 잔재로 소리 없이 움직일 수 있습니다." },
+    leftHand: null, waist: null, companion: null,
+  },
+  initialInventory: [
+    { name: '포식당한 자의 정수', type: 'non-consumable', description: "짐승 안에 소용돌이치는 영묘한 핵. 그것은 삼켜진 자들의 기억과 지식을 담고 있습니다. 슬픈 에너지로 윙윙거립니다." },
+    { name: '희미한 기억', type: 'consumable', quantity: 1, description: "과거 희생자의 스쳐 지나가는 기억. 그것을 소비하면 잊혀진 비밀이나 유용한 기술이 드러날 수 있지만, 정신적 반동은 예측할 수 없습니다." },
+  ],
+  startingPrompt: "변화는 최근에 일어났습니다. 그 남자의 기억들—그의 두려움, 그의 삶, 그의 지식—이 여전히 당신 안에서 비명을 지르고 있습니다. 당신은 더 이상 단순한 짐승이 아닙니다. 당신은... 다른 무언가입니다. 속삭이는 지하실이 당신을 부릅니다. 보물의 약속이 아니라, 힘과 잊혀진 정수의 냄새로. 당신은 굶주려 있습니다. 살점뿐만 아니라, 해답에도. 당신은 누구입니까? 입구 앞에 서자, 원초적 본능이 새로 발견된 의식과 싸웁니다. 당신의 첫 걸음을 묘사하십시오. 짐승으로, 아니면 인간으로?",
+  initialBlessings: DARK_MASTER_BLESSINGS_KO,
+};
 
 // --- LANGUAGE MAPPING ---
 
@@ -660,7 +812,7 @@ const t = (language: Language, key: string): string => {
         // Start Screen
         adventureTitle: { 'zh-TW': '無盡的冒險：低語地穴', 'zh-CN': '无尽的冒险：低语地穴', 'en': 'Endless Adventure: The Whispering Crypt', 'ja': '無限の冒険：囁きの地下聖堂', 'es': 'Aventura Interminable: La Cripta Susurrante', 'ko': '끝없는 모험: 속삭이는 지하실' },
         adventureSubtitle: { 'zh-TW': 'AI 驅動的文字角色扮演遊戲', 'zh-CN': 'AI 驱动的文字角色扮演游戏', 'en': 'An AI-Powered Text RPG', 'ja': 'AI駆動のテキストRPG', 'es': 'Un RPG de Texto Impulsado por IA', 'ko': 'AI 기반 텍스트 RPG' },
-        introText: { 'zh-TW': '一款由 Ai 驅動的動態文字冒險遊戲。你的每一個動作都会塑造一個獨特的故事和畫面，創造出可無限重玩的奇幻任務。', 'zh-CN': '一款由 Ai 驱动的动态文字冒险游戏。你的每一个动作都会塑造一个独特的故事和画面，创造出可无限重玩的奇幻任务。', 'en': 'A dynamic text-based adventure game powered by AI. Every action you take shapes a unique story and visuals, creating an infinitely replayable fantasy quest.', 'ja': 'AIによって駆動されるダイナミックなテキストベースのアドベンチャーゲーム。あなたの一つ一つの行動がユニークな物語とビジュアルを形作り、無限にリプレイ可能なファンタジーの探求を創り出します。', 'es': 'Un dinámico juego de aventuras basado en texto impulsado por IA. Cada acción que tomas da forma a una historia y visuales únicos, creando una misión de fantasía infinitamente rejugable.', 'ko': 'AI에 의해 구동되는 동적인 텍스트 기반 어드벤처 게임. 당신이 취하는 모든 행동은 독특한 이야기와 시각 자료를 형성하여 무한히 다시 플레이할 수 있는 판타지 퀘스트를 만듭니다.' },
+        introText: { 'zh-TW': '一款由 Ai 驅動的動態文字冒險遊戲。你的每一個動作都会塑造一個獨特的故事和畫面，創造出可無限重玩的奇幻任務。', 'zh-CN': '一款由 Ai 驱动的动态文字冒险游戏。你的每一个动作都会塑造一个独特的故事和画面，创造出可無限重玩的奇幻任务。', 'en': 'A dynamic text-based adventure game powered by AI. Every action you take shapes a unique story and visuals, creating an infinitely replayable fantasy quest.', 'ja': 'AIによって駆動されるダイナミックなテキストベースのアドベンチャーゲーム。あなたの一つ一つの行動がユニークな物語とビジュアルを形作り、無限にリプレイ可能なファンタジーの探求を創り出します。', 'es': 'Un dinámico juego de aventuras basado en texto impulsado por IA. Cada acción que tomas da forma a una historia y visuales únicos, creando una misión de fantasía infinitamente rejugable.', 'ko': 'AI에 의해 구동되는 동적인 텍스트 기반 어드벤처 게임. 당신이 취하는 모든 행동은 독특한 이야기와 시각 자료를 형성하여 무한히 다시 플레이할 수 있는 판타지 퀘스트를 만듭니다.' },
         enableNarration: { 'zh-TW': '啟用旁白', 'zh-CN': '启用旁白', 'en': 'Enable Narration', 'ja': 'ナレーションを有効にする', 'es': 'Activar Narración', 'ko': '내레이션 활성화' },
         voiceSpeed: { 'zh-TW': '語音速度', 'zh-CN': '语音速度', 'en': 'Voice Speed', 'ja': '読み上げ速度', 'es': 'Velocidad de Voz', 'ko': '음성 속도' },
         selectVoice: { 'zh-TW': '選擇聲音', 'zh-CN': '选择声音', 'en': 'Select Voice', 'ja': '声を選択', 'es': 'Seleccionar Voz', 'ko': '음성 선택' },
@@ -690,6 +842,7 @@ const t = (language: Language, key: string): string => {
         illustrationPromptStyle: { 'zh-TW': '史詩奇幻、黑暗、細膩的數位繪畫風格，', 'zh-CN': '史诗奇幻、黑暗、细腻的数位绘画风格，', 'en': 'Epic fantasy, dark, detailed digital painting of', 'ja': 'エピックファンタジー、ダーク、詳細なデジタルペインティングの', 'es': 'Pintura digital épica de fantasía, oscura y detallada de', 'ko': '서사 판타지, 어둡고 상세한 디지털 페인팅 스타일,' },
         illustrationError: { 'zh-TW': '空靈的迷霧拒絕形成影像。', 'zh-CN': '空灵的迷雾拒绝形成影像。', 'en': 'The ethereal mists refuse to form an image.', 'ja': '霊妙な霧が像を結ぶことを拒否しました。', 'es': 'Las nieblas etéreas se niegan a formar una imagen.', 'ko': '미묘한 안개가 형상을 만들기를 거부합니다.' },
         illustrationPromptNegative: { 'zh-TW': '圖片中不應包含任何可讀的文字、標題或對話。作為環境一部分的古老符文或魔法符號是允許的。', 'zh-CN': '图片中不应包含任何可读的文字、标题或对话。作为环境一部分的古老符文或魔法符号是允许的。', 'en': 'The image must not contain any legible text, titles, or dialogue. Ancient runes or magical symbols that are part of the environment are acceptable.', 'ja': '画像には、判読可能なテキスト、タイトル、対話を含めないでください。環境の一部である古代のルーン文字や魔法のシンボルは許容されます。', 'es': 'La imagen no debe contener texto legible, títulos ni diálogos. Se aceptan runas antiguas o símbolos mágicos que formen parte del entorno.', 'ko': '이미지에는 읽을 수 있는 텍스트, 제목 또는 대화가 포함되어서는 안 됩니다. 환경의 일부인 고대 룬이나 마법 기호는 허용됩니다.' },
+        gameClearedButton: { 'zh-TW': '你已通關', 'zh-CN': '你已通关', 'en': 'You Have Cleared the Game', 'ja': 'ゲームをクリアしました', 'es': 'Has Completado el Juego', 'ko': '게임을 클리어했습니다' },
         // Player Stats
         health: { 'zh-TW': '生命', 'zh-CN': '生命', 'en': 'Health', 'ja': '体力', 'es': 'Salud', 'ko': '체력' },
         luck: { 'zh-TW': '幸運', 'zh-CN': '幸运', 'en': 'Luck', 'ja': '幸運', 'es': 'Suerte', 'ko': '행운' },
@@ -711,6 +864,7 @@ const t = (language: Language, key: string): string => {
         victoryText: { 'zh-TW': '你的傳說將在時間的長廊中迴響。你已成功解鎖了「詐欺師」職業。', 'zh-CN': '你的传说将在时间的长廊中回响。你已成功解锁了「欺诈师」职业。', 'en': 'Your legend will echo through the ages. You have unlocked the Trickster class.', 'ja': 'あなたの伝説は時代を超えて語り継がれるでしょう。トリックスタークラスをアンロックしました。', 'es': 'Tu leyenda resonará a través de los siglos. Has desbloqueado la clase Embaucador.', 'ko': '당신의 전설은 시대를 거쳐 울려 퍼질 것입니다. 트릭스터 클래스를 잠금 해제했습니다.' },
         defeatText: { 'zh-TW': '你的旅程在此劃下句點，但死亡只是另一個開始。', 'zh-CN': '你的旅程在此划下句点，但死亡只是另一个开始。', 'en': 'Your journey ends here, but death is just another beginning.', 'ja': 'あなたの旅はここで終わりますが、死は新たな始まりに過ぎません。', 'es': 'Tu viaje termina aquí, pero la muerte es solo otro comienzo.', 'ko': '당신의 여정은 여기서 끝나지만, 죽음은 또 다른 시작일 뿐입니다.' },
         playAgain: { 'zh-TW': '再玩一次', 'zh-CN': '再玩一次', 'en': 'Play Again', 'ja': 'もう一度プレイ', 'es': 'Jugar de Nuevo', 'ko': '다시 플레이' },
+        downloadAdventure: { 'zh-TW': '下載冒險紀錄', 'zh-CN': '下载冒险纪录', 'en': 'Download Adventure', 'ja': '冒険の記録をダウンロード', 'es': 'Descargar Aventura', 'ko': '모험 기록 다운로드' },
     };
     return translations[key][language] || translations[key]['en'];
 };
@@ -734,8 +888,18 @@ const TRICKSTER_CLASS: Record<Language, PlayerClass> = {
     'ko': TRICKSTER_CLASS_KO,
 };
 
+const DARK_MASTER_CLASS: Record<Language, PlayerClass> = {
+    'en': DARK_MASTER_CLASS_EN,
+    'zh-TW': DARK_MASTER_CLASS_ZH_TW,
+    'zh-CN': DARK_MASTER_CLASS_ZH_CN,
+    'ja': DARK_MASTER_CLASS_JA,
+    'es': DARK_MASTER_CLASS_ES,
+    'ko': DARK_MASTER_CLASS_KO,
+};
+
 export {
   ALL_PLAYER_CLASSES,
   TRICKSTER_CLASS,
+  DARK_MASTER_CLASS,
   t,
 };
